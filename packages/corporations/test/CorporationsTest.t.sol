@@ -164,6 +164,13 @@ contract CorporationsTest is MudTest {
     world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "CORP4", "Corp4 Name")));
 
     assertTrue(CorporationsTable.getCEO(corp4) == 74);
+    assertTrue(CorporationsTable.getTicker(corp4) == "CORP4");
+    assertTrue(
+      keccak256(abi.encodePacked(CorporationsTable.getName(corp4))) == keccak256(abi.encodePacked("Corp4 Name"))
+    );
+    assertTrue(CorporationsTable.getClaimedAt(corp4) != 0);
+    assertTrue(keccak256(abi.encodePacked(CorporationsTable.getDescription(corp4))) == keccak256(abi.encodePacked("")));
+    assertTrue(keccak256(abi.encodePacked(CorporationsTable.getHomepage(corp4))) == keccak256(abi.encodePacked("")));
   }
 
   function testClaimCeoAsLeftCorp() public {
@@ -171,6 +178,13 @@ contract CorporationsTest is MudTest {
     world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp3, "CORP3", "Corp3 Name")));
 
     assertTrue(CorporationsTable.getCEO(corp3) == 73);
+    assertTrue(CorporationsTable.getTicker(corp3) == "CORP3");
+    assertTrue(
+      keccak256(abi.encodePacked(CorporationsTable.getName(corp3))) == keccak256(abi.encodePacked("Corp3 Name"))
+    );
+    assertTrue(CorporationsTable.getClaimedAt(corp3) != 0);
+    assertTrue(keccak256(abi.encodePacked(CorporationsTable.getDescription(corp3))) == keccak256(abi.encodePacked("")));
+    assertTrue(keccak256(abi.encodePacked(CorporationsTable.getHomepage(corp3))) == keccak256(abi.encodePacked("")));
   }
 
   function testRevertTransferNotMemberOfCorp() public {
