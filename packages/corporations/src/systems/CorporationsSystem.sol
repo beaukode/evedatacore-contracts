@@ -28,7 +28,7 @@ contract CorporationsSystem is System {
     }
 
     // Check if the corp is already claimed
-    if (_isClaimValid(corpId)) {
+    if (isClaimValid(corpId)) {
       revert CorporationsSystemErrors.CorporationsSystem_CorpAlreadyClaimed(corpId);
     }
 
@@ -52,7 +52,7 @@ contract CorporationsSystem is System {
     CorporationsTable.setCEO(corpId, toCeoId);
   }
 
-  function _isClaimValid(uint256 corpId) internal view returns (bool) {
+  function isClaimValid(uint256 corpId) public view returns (bool) {
     uint256 ceoId = CorporationsTable.getCEO(corpId);
 
     // Corp not claimed
