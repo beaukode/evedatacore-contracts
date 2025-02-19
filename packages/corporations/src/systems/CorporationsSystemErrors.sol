@@ -8,4 +8,5 @@ interface CorporationsSystemErrors {
   error CorporationsSystem_CorpNotClaimed();
   error CorporationsSystem_IsAlreadyCeo(uint256 corpId, uint256 ceoId);
   error CorporationsSystem_Unauthorized(uint256 corpId, uint256 callerId);
+  error CorporationsSystem_InvalidStringLength(string field, uint8 minLength, uint8 maxLength);
 }

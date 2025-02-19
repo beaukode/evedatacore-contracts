@@ -8,7 +8,6 @@ import { CharactersTable } from "@eveworld/world/src/codegen/tables/CharactersTa
 import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/CharactersByAddressTable.sol";
 import { CorporationsTable } from "../codegen/tables/CorporationsTable.sol";
 import { CorporationsSystemErrors } from "./CorporationsSystemErrors.sol";
-import { CharactersConstantsTable } from "@eveworld/world/src/codegen/tables/CharactersConstantsTable.sol";
 
 contract CorporationsSystem is System {
   modifier onlyCEO(uint256 corpId) {
@@ -33,6 +32,7 @@ contract CorporationsSystem is System {
       revert CorporationsSystemErrors.CorporationsSystem_CorpAlreadyClaimed(corpId);
     }
 
+    _assertStringLength(name, 1, 50);
     CorporationsTable.set(corpId, characterId, ticker, block.timestamp, name, "", "");
   }
 
@@ -66,5 +66,12 @@ contract CorporationsSystem is System {
 
     // Corp claimed, and the CEO is still member of the corp
     return true;
+  }
+
+  function _assertStringLength(string calldata str, uint8 minLength, uint8 maxLength) internal pure {
+    uint256 length = bytes(str).length;
+    if (length < minLength || length > maxLength) {
+      revert CorporationsSystemErrors.CorporationsSystem_InvalidStringLength(str, minLength, maxLength);
+    }
   }
 }

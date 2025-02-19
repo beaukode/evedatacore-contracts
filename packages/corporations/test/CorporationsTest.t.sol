@@ -11,7 +11,6 @@ import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/Cha
 import { EntityRecordOffchainTableData } from "@eveworld/world/src/codegen/tables/EntityRecordOffchainTable.sol";
 import { EntityRecordData } from "@eveworld/world/src/modules/smart-character/types.sol";
 import { SmartCharacterLib } from "@eveworld/world/src/modules/smart-character/SmartCharacterLib.sol";
-import { CharactersTable } from "@eveworld/world/src/codegen/tables/CharactersTable.sol";
 
 import { IWorld } from "../src/codegen/world/IWorld.sol";
 import { CorporationsTable } from "../src/codegen/tables/CorporationsTable.sol";
@@ -205,5 +204,22 @@ contract CorporationsTest is MudTest {
     world.call(systemId, abi.encodeCall(CorporationsSystem.transfer, (corp1, 71)));
 
     assertTrue(CorporationsTable.getCEO(corp1) == 71);
+  }
+
+  function testRevertClaimEmptyName() public {
+    vm.prank(player4);
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector, "", 1, 50)
+    );
+    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "CORP4", "")));
+  }
+
+  function testRevertClaimTooLongName() public {
+    vm.prank(player4);
+    string memory longName = "This corporation name is way too long and should not be accepted";
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector, longName, 1, 50)
+    );
+    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "CORP4", longName)));
   }
 }
