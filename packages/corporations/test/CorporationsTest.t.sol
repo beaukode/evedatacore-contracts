@@ -85,7 +85,7 @@ contract CorporationsTest is MudTest {
         player2,
         corp2,
         EntityRecordData({ typeId: 123, itemId: 0, volume: 0 }),
-        EntityRecordOffchainTableData({ name: "player2", dappURL: "https://evedataco.re", description: "" }),
+        EntityRecordOffchainTableData({ name: "player2", dappURL: "", description: "" }),
         ""
       );
     }
