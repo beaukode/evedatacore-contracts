@@ -32,6 +32,7 @@ contract CorporationsSystem is System {
       revert CorporationsSystemErrors.CorporationsSystem_CorpAlreadyClaimed(corpId);
     }
 
+    _assertTickerFormat(ticker);
     _assertStringLength(name, 1, 50);
     CorporationsTable.set(corpId, characterId, ticker, block.timestamp, name, "", "");
   }
@@ -72,6 +73,34 @@ contract CorporationsSystem is System {
     uint256 length = bytes(str).length;
     if (length < minLength || length > maxLength) {
       revert CorporationsSystemErrors.CorporationsSystem_InvalidStringLength(str, minLength, maxLength);
+    }
+  }
+
+  function _assertTickerFormat(bytes8 ticker) internal pure {    
+    uint256 length = 0;
+    
+    // Count actual length (until first zero byte)
+    for (uint256 i = 0; i < 8; i++) {
+      if (ticker[i] == 0) {
+        break;
+      }
+      length++;
+    }
+
+    // Check length
+    if (length < 1 || length > 5) {
+      revert CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat(ticker);
+    }
+
+    // Check each character
+    for (uint256 i = 0; i < length; i++) {
+      bytes1 char = ticker[i];
+      bool isCapitalLetter = (char >= 0x41 && char <= 0x5A); // A-Z
+      bool isDigit = (char >= 0x30 && char <= 0x39); // 0-9
+      
+      if (!isCapitalLetter && !isDigit) {
+        revert CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat(ticker);
+      }
     }
   }
 }

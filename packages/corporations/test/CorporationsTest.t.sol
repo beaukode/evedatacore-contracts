@@ -236,4 +236,33 @@ contract CorporationsTest is MudTest {
     );
     world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "CORP4", longName)));
   }
+
+  function testRevertClaimInvalidTickerFormat() public {
+    vm.startBroadcast(player4);
+
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8(" "))
+    );
+    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, " ", "Corp4 Name")));
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector,
+        bytes8(unicode"è")
+      )
+    );
+    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, unicode"è", "Corp4 Name")));
+
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8(""))
+    );
+    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "", "Corp4 Name")));
+
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8("ABCDEF"))
+    );
+    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "ABCDEF", "Corp4 Name")));
+
+    vm.stopBroadcast();
+  }
 }
