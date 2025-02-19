@@ -69,16 +69,34 @@ contract CorporationsSystem is System {
     return true;
   }
 
-  function _assertStringLength(string calldata str, uint8 minLength, uint8 maxLength) internal pure {
+  function setMetadata(
+    uint256 corpId,
+    bytes8 ticker,
+    string calldata name,
+    string calldata description,
+    string calldata homepage
+  ) public onlyCEO(corpId) {
+    _assertTickerFormat(ticker);
+    _assertStringLength(name, 1, 50);
+    _assertStringLength(description, 0, 4000);
+    _assertStringLength(homepage, 0, 255);
+
+    CorporationsTable.setTicker(corpId, ticker);
+    CorporationsTable.setName(corpId, name);
+    CorporationsTable.setDescription(corpId, description);
+    CorporationsTable.setHomepage(corpId, homepage);
+  }
+
+  function _assertStringLength(string calldata str, uint16 minLength, uint16 maxLength) internal pure {
     uint256 length = bytes(str).length;
     if (length < minLength || length > maxLength) {
       revert CorporationsSystemErrors.CorporationsSystem_InvalidStringLength(str, minLength, maxLength);
     }
   }
 
-  function _assertTickerFormat(bytes8 ticker) internal pure {    
+  function _assertTickerFormat(bytes8 ticker) internal pure {
     uint256 length = 0;
-    
+
     // Count actual length (until first zero byte)
     for (uint256 i = 0; i < 8; i++) {
       if (ticker[i] == 0) {
@@ -97,7 +115,7 @@ contract CorporationsSystem is System {
       bytes1 char = ticker[i];
       bool isCapitalLetter = (char >= 0x41 && char <= 0x5A); // A-Z
       bool isDigit = (char >= 0x30 && char <= 0x39); // 0-9
-      
+
       if (!isCapitalLetter && !isDigit) {
         revert CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat(ticker);
       }

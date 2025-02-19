@@ -265,4 +265,154 @@ contract CorporationsTest is MudTest {
 
     vm.stopBroadcast();
   }
+
+  function testSetMetadata() public {
+    vm.prank(admin);
+    world.call(
+      systemId,
+      abi.encodeCall(
+        CorporationsSystem.setMetadata,
+        (corp1, "NEW", "New Corp Name", "New description", "https://newcorp.com")
+      )
+    );
+
+    assertTrue(CorporationsTable.getTicker(corp1) == "NEW");
+    assertTrue(
+      keccak256(abi.encodePacked(CorporationsTable.getName(corp1))) == keccak256(abi.encodePacked("New Corp Name"))
+    );
+    assertTrue(
+      keccak256(abi.encodePacked(CorporationsTable.getDescription(corp1))) ==
+        keccak256(abi.encodePacked("New description"))
+    );
+    assertTrue(
+      keccak256(abi.encodePacked(CorporationsTable.getHomepage(corp1))) ==
+        keccak256(abi.encodePacked("https://newcorp.com"))
+    );
+  }
+
+  function testRevertSetMetadataNotCEO() public {
+    vm.prank(player1);
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_Unauthorized.selector, corp1, 71)
+    );
+    world.call(
+      systemId,
+      abi.encodeCall(
+        CorporationsSystem.setMetadata,
+        (corp1, "NEW", "New Corp Name", "New description", "https://newcorp.com")
+      )
+    );
+  }
+
+  function testRevertSetMetadataInvalidTickerFormat() public {
+    vm.startBroadcast(admin);
+
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8(" "))
+    );
+    world.call(
+      systemId,
+      abi.encodeCall(
+        CorporationsSystem.setMetadata,
+        (corp1, " ", "New Corp Name", "New description", "https://newcorp.com")
+      )
+    );
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector,
+        bytes8(unicode"è")
+      )
+    );
+    world.call(
+      systemId,
+      abi.encodeCall(
+        CorporationsSystem.setMetadata,
+        (corp1, unicode"è", "New Corp Name", "New description", "https://newcorp.com")
+      )
+    );
+
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8(""))
+    );
+    world.call(
+      systemId,
+      abi.encodeCall(
+        CorporationsSystem.setMetadata,
+        (corp1, "", "New Corp Name", "New description", "https://newcorp.com")
+      )
+    );
+
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8("ABCDEF"))
+    );
+    world.call(
+      systemId,
+      abi.encodeCall(
+        CorporationsSystem.setMetadata,
+        (corp1, "ABCDEF", "New Corp Name", "New description", "https://newcorp.com")
+      )
+    );
+
+    vm.stopBroadcast();
+  }
+
+  function testRevertSetMetadataInvalidStringLength() public {
+    vm.startBroadcast(admin);
+
+    string memory longName = "This corporation name is way too long and should not be accepted";
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector, longName, 1, 50)
+    );
+    world.call(
+      systemId,
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "NEW", longName, "New description", "https://newcorp.com"))
+    );
+
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector, "", 1, 50)
+    );
+    world.call(
+      systemId,
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "NEW", "", "New description", "https://newcorp.com"))
+    );
+
+    string
+      memory longDescription = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tincidunt, orci dolor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tinciduna"
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tincidunt, orci dolor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tinciduna"
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tincidunt, orci dolor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tinciduna"
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tincidunt, orci dolor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tinciduna"
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tincidunt, orci dolor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tinciduna"
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tincidunt, orci dolor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tinciduna"
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tincidunt, orci dolor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tinciduna"
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tincidunt, orci dolor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tinciduna"
+      "L";
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector,
+        longDescription,
+        0,
+        4000
+      )
+    );
+    world.call(
+      systemId,
+      abi.encodeCall(
+        CorporationsSystem.setMetadata,
+        (corp1, "NEW", "New Corp Name", longDescription, "https://newcorp.com")
+      )
+    );
+
+    string
+      memory longUrl = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tincidunt, orci dolor.";
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector, longUrl, 0, 255)
+    );
+    world.call(
+      systemId,
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "NEW", "New Corp Name", "New description", longUrl))
+    );
+
+    vm.stopBroadcast();
+  }
 }
