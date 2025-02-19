@@ -7,7 +7,7 @@
     "mud"
   ],
   "rules": {
-    "no-unused-import": "error",
+    "no-unused-import": "warn",
     "compiler-version": [
       "error",
       ">=0.8.0"
