@@ -147,7 +147,7 @@ contract CorporationsTest is MudTest {
   function testRevertClaimNotMemberOfCorp() public {
     vm.prank(admin);
     vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_NotMemberOfCorp.selector, corp2)
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_NotMemberOfCorp.selector, corp2, 42)
     );
     world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp2, "TEST", "Test Corp")));
   }
@@ -167,10 +167,43 @@ contract CorporationsTest is MudTest {
     assertTrue(CorporationsTable.getCEO(corp4) == 74);
   }
 
-  function testClaimNoCeoCorp() public {
+  function testClaimCeoAsLeftCorp() public {
     vm.prank(player3);
     world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp3, "CORP3", "Corp3 Name")));
 
     assertTrue(CorporationsTable.getCEO(corp3) == 73);
+  }
+
+  function testRevertTransferNotMemberOfCorp() public {
+    vm.prank(admin);
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_NotMemberOfCorp.selector, corp1, 74)
+    );
+    world.call(systemId, abi.encodeCall(CorporationsSystem.transfer, (corp1, 74)));
+  }
+
+  function testRevertTransferNotCEO() public {
+    vm.prank(player1);
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_Unauthorized.selector, corp1, 71)
+    );
+    world.call(systemId, abi.encodeCall(CorporationsSystem.transfer, (corp1, 42)));
+  }
+
+  function testRevertTransferIsAlreadyCeo() public {
+    vm.prank(admin);
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_IsAlreadyCeo.selector, corp1, 42)
+    );
+    world.call(systemId, abi.encodeCall(CorporationsSystem.transfer, (corp1, 42)));
+  }
+
+  function testTransfer() public {
+    assertTrue(CorporationsTable.getCEO(corp1) == 42);
+
+    vm.prank(admin);
+    world.call(systemId, abi.encodeCall(CorporationsSystem.transfer, (corp1, 71)));
+
+    assertTrue(CorporationsTable.getCEO(corp1) == 71);
   }
 }
