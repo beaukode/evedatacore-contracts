@@ -1,0 +1,12 @@
+out/
+cache/
+node_modules/
+bindings/
+artifacts/
+broadcast/
+.mud/
+.env.*
+!.env.anvil
+
+# Ignore MUD deploy artifacts
+*/*/deploys
