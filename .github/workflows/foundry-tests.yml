@@ -40,9 +40,7 @@ jobs:
           log-output: true
       - name: "Deploy to Anvil"
         run: |
-          cd packages/corporations
           npm run deploy:local
       - name: "Run tests"
-        run: |
-          cd packages/corporations     
+        run: | 
           npm run test
