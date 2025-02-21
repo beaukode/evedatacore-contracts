@@ -1,0 +1,31 @@
+name: Deploy staging
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  local-deploy-and-test:
+    uses: ./.github/workflows/foundry-tests.yml
+  deploy-staging:
+    concurrency:
+      group: "deploy-staging-${{github.ref}}"
+      cancel-in-progress: false
+    runs-on: "ubuntu-latest"
+    environment: "staging"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node 20.x Environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: "Install dependencies"
+        run: "npm ci"
+      - name: "Deploy corporations"
+        env:
+          PRIVATE_KEY: ${{ secrets.CORPORATIONS_PRIVATE_KEY }}
+          CORPORATIONS_NAMESPACE: ${{ vars.CORPORATIONS_NAMESPACE }}
+        run: |
+          cd packages/corporations
+          npm run deploy:garnet

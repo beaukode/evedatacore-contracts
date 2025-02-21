@@ -19,7 +19,7 @@ services:
   #   depends_on:
   #     foundry:
   #       condition: service_healthy
-  #   command: "--rpc-url http://foundry:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --world-address 0x8a791620dd6260079bf849dc5567adc3f2fdc318"
+  #   command: "--rpc-url http://foundry:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
   #   tty: true
   postgres:
     image: postgres

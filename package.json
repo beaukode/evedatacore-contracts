@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "license": "CC-BY-NC-4.0",
   "scripts": {
-    "lint": "solhint --config .solhint.json 'packages/**/*.sol'"
+    "lint": "solhint --config .solhint.json 'packages/**/*.sol'",
+    "deploy:local": "npm run deploy:local --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
   },
   "dependencies": {
     "@eveworld/common-constants": "0.0.13",
@@ -24,6 +26,7 @@
     "solhint-plugin-mud": "2.2.9"
   },
   "workspaces": [
-    "packages/test-fixtures"
+    "packages/test-fixtures",
+    "packages/corporations"
   ]
 }

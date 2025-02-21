@@ -1,0 +1,42 @@
+name: Foundry tests
+
+on:
+  workflow_call:
+
+jobs:
+  local-deploy-and-test:
+    concurrency:
+      group: "test-${{github.ref}}"
+      cancel-in-progress: true
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly-d14c09f15a9849fe177d097451919810e5877617
+      - name: Setup Node 20.x Environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: "Install dependencies"
+        run: "npm ci"
+      - name: "Lint"
+        run: "npm run lint"
+      - uses: JarvusInnovations/background-action@v1
+        name: Start Anvil
+        with:
+          run: |
+            gunzip anvil-test-state.json.gz
+            anvil --block-time 10 --block-base-fee-per-gas 0 --gas-limit 3000000000 --hardfork cancun --host 0.0.0.0 --port 8545 --state anvil-test-state.json &
+          wait-on: |
+            tcp:localhost:8545
+          wait-for: 30s
+          tail: false
+          log-output: true
+      - name: "Deploy to Anvil"
+        run: |
+          npm run deploy:local
+      - name: "Run tests"
+        run: | 
+          npm run test
