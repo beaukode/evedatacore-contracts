@@ -34,3 +34,4 @@ jobs:
         run: |
           cd packages/corporations
           npm run deploy:garnet
+          npm run verify:garnet
