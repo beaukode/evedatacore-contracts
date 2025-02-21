@@ -9,6 +9,7 @@ jobs:
   local-deploy-and-test:
     uses: ./.github/workflows/foundry-tests.yml
   deploy-staging:
+    needs: local-deploy-and-test
     concurrency:
       group: "deploy-staging-${{github.ref}}"
       cancel-in-progress: false
