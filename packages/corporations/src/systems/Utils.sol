@@ -5,15 +5,10 @@ import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
 import { WorldResourceIdLib } from "@latticexyz/world/src/WorldResourceId.sol";
 import { RESOURCE_SYSTEM } from "@latticexyz/world/src/worldResourceTypes.sol";
 
-import { CORPORATIONS_DEPLOYMENT_NAMESPACE, CORPORATIONS_SYSTEM_NAME } from "./constants.sol";
+import { CORPORATIONS_SYSTEM_NAME } from "./constants.sol";
 
 library Utils {
-  function corporationsSystemId() internal pure returns (ResourceId) {
-    return
-      WorldResourceIdLib.encode({
-        typeId: RESOURCE_SYSTEM,
-        namespace: CORPORATIONS_DEPLOYMENT_NAMESPACE,
-        name: CORPORATIONS_SYSTEM_NAME
-      });
+  function corporationsSystemId(bytes14 namespace) internal pure returns (ResourceId) {
+    return WorldResourceIdLib.encode({ typeId: RESOURCE_SYSTEM, namespace: namespace, name: CORPORATIONS_SYSTEM_NAME });
   }
 }

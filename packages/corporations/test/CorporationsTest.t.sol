@@ -35,7 +35,7 @@ contract CorporationsTest is MudTest {
   address private player3;
   address private player4;
 
-  ResourceId private systemId = Utils.corporationsSystemId();
+  ResourceId private systemId;
 
   //Setup for the tests
   function setUp() public override {
@@ -48,6 +48,10 @@ contract CorporationsTest is MudTest {
     player2 = vm.addr(vm.envUint("PLAYER2_PRIVATE_KEY"));
     player3 = vm.addr(vm.envUint("PLAYER3_PRIVATE_KEY"));
     player4 = vm.addr(vm.envUint("PLAYER4_PRIVATE_KEY"));
+
+    // Convert string to bytes14 using abi.encodePacked
+    bytes14 namespace = bytes14(abi.encodePacked(vm.envOr("CORPORATIONS_NAMESPACE", vm.envString("DEFAULT_NAMESPACE"))));
+    systemId = Utils.corporationsSystemId(namespace);
 
     smartCharacter = SmartCharacterLib.World({
       iface: IBaseWorld(worldAddress),
