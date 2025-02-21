@@ -10,7 +10,6 @@
     "dev:contracts": "export $(cat ../../.env.anvil | grep -v '^#' | xargs) && mud dev-contracts --rpc $RPC_URL --worldAddress ${WORLD_ADDRESS}",
     "deploy:local": "export $(cat ../../.env.anvil | grep -v '^#' | xargs) && npm run build && mud deploy --profile=local --worldAddress ${WORLD_ADDRESS}",
     "deploy:garnet": "export $(cat ../../.env.garnet | grep -v '^#' | xargs) && npm run build && mud deploy --profile=garnet --worldAddress ${WORLD_ADDRESS}",
-    "test:deploy": "export $(cat ../../.env.anvil | grep -v '^#' | xargs) && tsc --noEmit && mud test",
     "test": "export $(cat ../../.env.anvil | grep -v '^#' | xargs) && forge test --fork-url $RPC_URL"
    
   },
