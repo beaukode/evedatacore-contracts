@@ -13,7 +13,7 @@ import { EntityRecordData } from "@eveworld/world/src/modules/smart-character/ty
 import { SmartCharacterLib } from "@eveworld/world/src/modules/smart-character/SmartCharacterLib.sol";
 
 import { IWorld } from "../src/codegen/world/IWorld.sol";
-import { CorporationsTable } from "../src/codegen/tables/CorporationsTable.sol";
+import { CorporationsTable, CorporationsTableData } from "../src/codegen/tables/CorporationsTable.sol";
 import { CorporationsSystem } from "../src/systems/CorporationsSystem.sol";
 import { CorporationsSystemErrors } from "../src/systems/CorporationsSystemErrors.sol";
 import { Utils } from "../src/systems/Utils.sol";
@@ -50,7 +50,9 @@ contract CorporationsTest is MudTest {
     player4 = vm.addr(vm.envUint("PLAYER4_PRIVATE_KEY"));
 
     // Convert string to bytes14 using abi.encodePacked
-    bytes14 namespace = bytes14(abi.encodePacked(vm.envOr("CORPORATIONS_NAMESPACE", vm.envString("DEFAULT_NAMESPACE"))));
+    bytes14 namespace = bytes14(
+      abi.encodePacked(vm.envOr("CORPORATIONS_NAMESPACE", vm.envString("DEFAULT_NAMESPACE")))
+    );
     systemId = Utils.corporationsSystemId(namespace);
 
     smartCharacter = SmartCharacterLib.World({
@@ -115,7 +117,7 @@ contract CorporationsTest is MudTest {
 
     vm.startBroadcast(deployerPrivateKey);
     // A corp claimed by the admin
-    CorporationsTable.set(corp1, 42, "CORP1", block.timestamp, "Corp1 Name", "", "");
+    CorporationsTable.set(corp1, 42, "CORP1", block.timestamp, "Corp1 Name", "https://corp1.com", "Corp1 Description");
     // A corp claimed by a player
     CorporationsTable.set(corp2, 72, "CORP2", block.timestamp, "Corp2 Name", "", "");
     // A corp where the CEO is not a member of the corp anymore
@@ -418,5 +420,58 @@ contract CorporationsTest is MudTest {
     );
 
     vm.stopBroadcast();
+  }
+
+  function testIsClaimValid() public {
+    // Corp1 is claimed and CEO is member of corp - should be valid
+    bool isValid = abi.decode(world.call(systemId, abi.encodeCall(CorporationsSystem.isClaimValid, (corp1))), (bool));
+    assertTrue(isValid);
+
+    // Corp2 is claimed and CEO is member of corp - should be valid
+    (isValid) = abi.decode(world.call(systemId, abi.encodeCall(CorporationsSystem.isClaimValid, (corp2))), (bool));
+    assertTrue(isValid);
+
+    // Corp3 is claimed but CEO is not member of corp - should be invalid
+    (isValid) = abi.decode(world.call(systemId, abi.encodeCall(CorporationsSystem.isClaimValid, (corp3))), (bool));
+    assertFalse(isValid);
+
+    // Corp4 is unclaimed - should be invalid
+    (isValid) = abi.decode(world.call(systemId, abi.encodeCall(CorporationsSystem.isClaimValid, (corp4))), (bool));
+    assertFalse(isValid);
+  }
+
+  function testGetMetadata() public {
+    CorporationsTableData memory data1 = abi.decode(
+      world.call(systemId, abi.encodeCall(CorporationsSystem.getMetadata, (corp1))),
+      (CorporationsTableData)
+    );
+    assertEq(data1.CEO, 42);
+    assertEq(data1.ticker, "CORP1");
+    assertEq(data1.claimedAt, block.timestamp);
+    assertEq(data1.name, "Corp1 Name");
+    assertEq(data1.homepage, "https://corp1.com");
+    assertEq(data1.description, "Corp1 Description");
+
+    CorporationsTableData memory data2 = abi.decode(
+      world.call(systemId, abi.encodeCall(CorporationsSystem.getMetadata, (corp2))),
+      (CorporationsTableData)
+    );
+    assertEq(data2.CEO, 72);
+    assertEq(data2.ticker, "CORP2");
+    assertEq(data2.claimedAt, block.timestamp);
+    assertEq(data2.name, "Corp2 Name");
+    assertEq(data2.description, "");
+    assertEq(data2.homepage, "");
+
+    CorporationsTableData memory data9 = abi.decode(
+      world.call(systemId, abi.encodeCall(CorporationsSystem.getMetadata, (9))),
+      (CorporationsTableData)
+    );
+    assertEq(data9.CEO, 0);
+    assertEq(data9.ticker, "");
+    assertEq(data9.claimedAt, 0);
+    assertEq(data9.name, "");
+    assertEq(data9.homepage, "");
+    assertEq(data9.description, "");
   }
 }

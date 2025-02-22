@@ -5,7 +5,7 @@ import { System } from "@latticexyz/world/src/System.sol";
 
 import { CharactersTable } from "@eveworld/world/src/codegen/tables/CharactersTable.sol";
 import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/CharactersByAddressTable.sol";
-import { CorporationsTable } from "../codegen/tables/CorporationsTable.sol";
+import { CorporationsTable, CorporationsTableData } from "../codegen/tables/CorporationsTable.sol";
 import { CorporationsSystemErrors } from "./CorporationsSystemErrors.sol";
 
 contract CorporationsSystem is System {
@@ -84,6 +84,10 @@ contract CorporationsSystem is System {
     CorporationsTable.setName(corpId, name);
     CorporationsTable.setDescription(corpId, description);
     CorporationsTable.setHomepage(corpId, homepage);
+  }
+
+  function getMetadata(uint256 corpId) public view returns (CorporationsTableData memory data) {
+    data = CorporationsTable.get(corpId);
   }
 
   function _assertStringLength(string calldata str, uint16 minLength, uint16 maxLength) internal pure {
