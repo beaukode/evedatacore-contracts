@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CC-BY-NC-4.0
 pragma solidity >=0.8.24;
 
-import "forge-std/Test.sol";
 import { System } from "@latticexyz/world/src/System.sol";
 
 import { CharactersTable } from "@eveworld/world/src/codegen/tables/CharactersTable.sol";
