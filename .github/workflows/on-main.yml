@@ -33,5 +33,6 @@ jobs:
           CORPORATIONS_NAMESPACE: ${{ vars.CORPORATIONS_NAMESPACE }}
         run: |
           cd packages/corporations
+          rm -Rf test
           npm run deploy:garnet
           npm run verify:garnet
