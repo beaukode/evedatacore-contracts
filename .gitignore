@@ -8,3 +8,6 @@ broadcast/
 
 # Ignore MUD deploy artifacts
 */*/deploys
+
+# Ignore local env files
+.env.*.local
