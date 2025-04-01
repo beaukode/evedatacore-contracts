@@ -70,17 +70,14 @@ contract CorporationsSystem is System {
 
   function setMetadata(
     uint256 corpId,
-    bytes8 ticker,
     string calldata name,
     string calldata description,
     string calldata homepage
   ) public onlyCEO(corpId) {
-    _assertTickerFormat(ticker);
     _assertStringLength(name, 1, 50);
     _assertStringLength(description, 0, 4000);
     _assertStringLength(homepage, 0, 255);
 
-    CorporationsTable.setTicker(corpId, ticker);
     CorporationsTable.setName(corpId, name);
     CorporationsTable.setDescription(corpId, description);
     CorporationsTable.setHomepage(corpId, homepage);

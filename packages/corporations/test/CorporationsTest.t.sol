@@ -276,13 +276,9 @@ contract CorporationsTest is MudTest {
     vm.prank(admin);
     world.call(
       systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, "NEW", "New Corp Name", "New description", "https://newcorp.com")
-      )
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", "New description", "https://newcorp.com"))
     );
 
-    assertTrue(CorporationsTable.getTicker(corp1) == "NEW");
     assertTrue(
       keccak256(abi.encodePacked(CorporationsTable.getName(corp1))) == keccak256(abi.encodePacked("New Corp Name"))
     );
@@ -303,64 +299,8 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, "NEW", "New Corp Name", "New description", "https://newcorp.com")
-      )
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", "New description", "https://newcorp.com"))
     );
-  }
-
-  function testRevertSetMetadataInvalidTickerFormat() public {
-    vm.startBroadcast(admin);
-
-    vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8(" "))
-    );
-    world.call(
-      systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, " ", "New Corp Name", "New description", "https://newcorp.com")
-      )
-    );
-
-    vm.expectRevert(
-      abi.encodeWithSelector(
-        CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector,
-        bytes8(unicode"è")
-      )
-    );
-    world.call(
-      systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, unicode"è", "New Corp Name", "New description", "https://newcorp.com")
-      )
-    );
-
-    vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8(""))
-    );
-    world.call(
-      systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, "", "New Corp Name", "New description", "https://newcorp.com")
-      )
-    );
-
-    vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8("ABCDEF"))
-    );
-    world.call(
-      systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, "ABCDEF", "New Corp Name", "New description", "https://newcorp.com")
-      )
-    );
-
-    vm.stopBroadcast();
   }
 
   function testRevertSetMetadataInvalidStringLength() public {
@@ -372,7 +312,7 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "NEW", longName, "New description", "https://newcorp.com"))
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, longName, "New description", "https://newcorp.com"))
     );
 
     vm.expectRevert(
@@ -380,7 +320,7 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "NEW", "", "New description", "https://newcorp.com"))
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "", "New description", "https://newcorp.com"))
     );
 
     string
@@ -403,10 +343,7 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, "NEW", "New Corp Name", longDescription, "https://newcorp.com")
-      )
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", longDescription, "https://newcorp.com"))
     );
 
     string
@@ -416,7 +353,7 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "NEW", "New Corp Name", "New description", longUrl))
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", "New description", longUrl))
     );
 
     vm.stopBroadcast();
