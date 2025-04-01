@@ -7,7 +7,7 @@ optimizer = true
 optimizer_runs = 3000
 verbosity = 2
 src = "src"
-example = "test"
+test = "test"
 out = "out"
 allow_paths = [
   # pnpm symlinks to the project root's node_modules
@@ -29,9 +29,9 @@ fs_permissions = [{ access = "read", path = "./"}]
 # Local Anvil Instance
 eth_rpc_url = "http://127.0.0.1:8545"
 
-[profile.garnet]
+[profile.testnet]
 # Public Testnet
-eth_rpc_url = "https://rpc.garnetchain.com"
+eth_rpc_url = "https://rpc.pyropechain.com"
 
 [profile.redstone]
 # Public Mainnet

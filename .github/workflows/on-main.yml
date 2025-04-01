@@ -34,5 +34,5 @@ jobs:
         run: |
           cd packages/corporations
           rm -Rf test
-          npm run deploy:garnet
-          npm run verify:garnet
+          npm run deploy:testnet
+          npm run verify:testnet
