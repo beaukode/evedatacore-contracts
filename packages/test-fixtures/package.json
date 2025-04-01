@@ -7,11 +7,11 @@
   "scripts": {
     "build": "mud build",
     "clean": "forge clean && rimraf src/codegen",
-    "dev:contracts": "export $(cat ../../.env.anvil | grep -v '^#' | xargs) && mud dev-contracts --rpc $RPC_URL --worldAddress ${WORLD_ADDRESS}",
-    "deploy:local": "export $(cat ../../.env.anvil | grep -v '^#' | xargs) && npm run build && mud deploy --profile=local --worldAddress ${WORLD_ADDRESS}",
-    "deploy:garnet": "export $(cat ../../.env.garnet | grep -v '^#' | xargs) && npm run build && mud deploy --profile=garnet --worldAddress ${WORLD_ADDRESS}",
-    "test": "export $(cat ../../.env.anvil | grep -v '^#' | xargs) && forge test --fork-url $RPC_URL"
-   
+    "dev:contracts": "dotenv -e ../../.env  -c anvil -- sh -c 'mud dev-contracts --rpc $RPC_URL --worldAddress ${WORLD_ADDRESS}'",
+    "deploy:local": "dotenv -e ../../.env -c anvil -- sh -c 'npm run build && mud deploy --profile=local --worldAddress ${WORLD_ADDRESS}'",
+    "deploy:testnet": "dotenv -e ../../.env -c testnet -- sh -c 'npm run build && mud deploy --profile=testnet --worldAddress ${WORLD_ADDRESS}'",
+    "verify:testnet": "dotenv -e ../../.env -c testnet -- sh -c 'mud verify --profile=testnet --worldAddress ${WORLD_ADDRESS} --verifier-url ${VERIFIER_URL}'",
+    "test": "dotenv -e ../../.env -c anvil -- sh -c 'forge test --fork-url $RPC_URL'"
   },
   "license": "CC-BY-NC-4.0"
 }

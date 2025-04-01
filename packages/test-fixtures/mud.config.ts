@@ -1,7 +1,9 @@
 import { defineWorld } from "@latticexyz/world";
 
+const namespace = process.env.TEST_FIXTURES_NAMESPACE || process.env.DEFAULT_NAMESPACE;
+
 export default defineWorld({
-  namespace: "beauKode_dev",
+  namespace: namespace,
   tables: {
     TestTable1: {
       schema: {
