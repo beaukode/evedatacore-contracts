@@ -17,6 +17,13 @@ export default defineWorld({
       },
       key: ["corpId"],
     },
+    CorporationsTickers: {
+      schema: {
+        ticker: "bytes8",
+        corpId: "uint256",
+      },
+      key: ["ticker"],
+    },
   },
   systems: {
     CorporationsSystem: {

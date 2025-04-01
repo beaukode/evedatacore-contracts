@@ -26,8 +26,8 @@ struct CorporationsTableData {
 }
 
 library CorporationsTable {
-  // Hex below is the result of `WorldResourceIdLib.encode({ namespace: "beauKode_dev", name: "CorporationsTabl", typeId: RESOURCE_TABLE });`
-  ResourceId constant _tableId = ResourceId.wrap(0x7462626561754b6f64655f6465760000436f72706f726174696f6e735461626c);
+  // Hex below is the result of `WorldResourceIdLib.encode({ namespace: "", name: "CorporationsTabl", typeId: RESOURCE_TABLE });`
+  ResourceId constant _tableId = ResourceId.wrap(0x74620000000000000000000000000000436f72706f726174696f6e735461626c);
 
   FieldLayout constant _fieldLayout =
     FieldLayout.wrap(0x0048030320082000000000000000000000000000000000000000000000000000);
