@@ -10,4 +10,5 @@ interface CorporationsSystemErrors {
   error CorporationsSystem_Unauthorized(uint256 corpId, uint256 callerId);
   error CorporationsSystem_InvalidStringLength(string value, uint16 minLength, uint16 maxLength);
   error CorporationsSystem_InvalidTickerFormat(bytes8 ticker);
+  error CorporationsSystem_TickerAlreadyTaken(bytes8 ticker);
 }

@@ -6,6 +6,7 @@ import { System } from "@latticexyz/world/src/System.sol";
 import { CharactersTable } from "@eveworld/world/src/codegen/tables/CharactersTable.sol";
 import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/CharactersByAddressTable.sol";
 import { CorporationsTable, CorporationsTableData } from "../codegen/tables/CorporationsTable.sol";
+import { CorporationsTickers } from "../codegen/tables/CorporationsTickers.sol";
 import { CorporationsSystemErrors } from "./CorporationsSystemErrors.sol";
 
 contract CorporationsSystem is System {
@@ -33,6 +34,14 @@ contract CorporationsSystem is System {
 
     _assertTickerFormat(ticker);
     _assertStringLength(name, 1, 50);
+
+    // Check if ticker is already taken by another corp
+    uint256 existingCorpId = CorporationsTickers.getCorpId(ticker);
+    if (existingCorpId != corpId && existingCorpId != 0) {
+      revert CorporationsSystemErrors.CorporationsSystem_TickerAlreadyTaken(ticker);
+    }
+
+    CorporationsTickers.set(ticker, corpId);
     CorporationsTable.set(corpId, characterId, ticker, block.timestamp, name, "", "");
   }
 
@@ -70,17 +79,14 @@ contract CorporationsSystem is System {
 
   function setMetadata(
     uint256 corpId,
-    bytes8 ticker,
     string calldata name,
     string calldata description,
     string calldata homepage
   ) public onlyCEO(corpId) {
-    _assertTickerFormat(ticker);
     _assertStringLength(name, 1, 50);
     _assertStringLength(description, 0, 4000);
     _assertStringLength(homepage, 0, 255);
 
-    CorporationsTable.setTicker(corpId, ticker);
     CorporationsTable.setName(corpId, name);
     CorporationsTable.setDescription(corpId, description);
     CorporationsTable.setHomepage(corpId, homepage);

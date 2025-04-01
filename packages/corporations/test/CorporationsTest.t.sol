@@ -14,6 +14,7 @@ import { SmartCharacterLib } from "@eveworld/world/src/modules/smart-character/S
 
 import { IWorld } from "../src/codegen/world/IWorld.sol";
 import { CorporationsTable, CorporationsTableData } from "../src/codegen/tables/CorporationsTable.sol";
+import { CorporationsTickers } from "../src/codegen/tables/CorporationsTickers.sol";
 import { CorporationsSystem } from "../src/systems/CorporationsSystem.sol";
 import { CorporationsSystemErrors } from "../src/systems/CorporationsSystemErrors.sol";
 import { Utils } from "../src/systems/Utils.sol";
@@ -118,10 +119,16 @@ contract CorporationsTest is MudTest {
     vm.startBroadcast(deployerPrivateKey);
     // A corp claimed by the admin
     CorporationsTable.set(corp1, 42, "CORP1", block.timestamp, "Corp1 Name", "https://corp1.com", "Corp1 Description");
+    CorporationsTickers.set("CORP1", corp1);
+
     // A corp claimed by a player
     CorporationsTable.set(corp2, 72, "CORP2", block.timestamp, "Corp2 Name", "", "");
+    CorporationsTickers.set("CORP2", corp2);
+
     // A corp where the CEO is not a member of the corp anymore
     CorporationsTable.set(corp3, 71, "CORP3", block.timestamp, "Corp3 Name", "", "");
+    CorporationsTickers.set("CORP3", corp3);
+
     // Leave the corp4 unclaimed
     vm.stopBroadcast();
   }
@@ -177,6 +184,16 @@ contract CorporationsTest is MudTest {
     assertTrue(CorporationsTable.getClaimedAt(corp4) != 0);
     assertTrue(keccak256(abi.encodePacked(CorporationsTable.getDescription(corp4))) == keccak256(abi.encodePacked("")));
     assertTrue(keccak256(abi.encodePacked(CorporationsTable.getHomepage(corp4))) == keccak256(abi.encodePacked("")));
+    assertTrue(CorporationsTickers.get("CORP4") == corp4);
+  }
+
+  function testRevertClaimTickerAlreadyTaken() public {
+    // Try to claim another corp with a ticker that is already taken
+    vm.prank(player4);
+    vm.expectRevert(
+      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_TickerAlreadyTaken.selector, bytes8("CORP3"))
+    );
+    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "CORP3", "Corp4 Name")));
   }
 
   function testClaimCeoAsLeftCorp() public {
@@ -276,13 +293,9 @@ contract CorporationsTest is MudTest {
     vm.prank(admin);
     world.call(
       systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, "NEW", "New Corp Name", "New description", "https://newcorp.com")
-      )
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", "New description", "https://newcorp.com"))
     );
 
-    assertTrue(CorporationsTable.getTicker(corp1) == "NEW");
     assertTrue(
       keccak256(abi.encodePacked(CorporationsTable.getName(corp1))) == keccak256(abi.encodePacked("New Corp Name"))
     );
@@ -303,64 +316,8 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, "NEW", "New Corp Name", "New description", "https://newcorp.com")
-      )
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", "New description", "https://newcorp.com"))
     );
-  }
-
-  function testRevertSetMetadataInvalidTickerFormat() public {
-    vm.startBroadcast(admin);
-
-    vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8(" "))
-    );
-    world.call(
-      systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, " ", "New Corp Name", "New description", "https://newcorp.com")
-      )
-    );
-
-    vm.expectRevert(
-      abi.encodeWithSelector(
-        CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector,
-        bytes8(unicode"è")
-      )
-    );
-    world.call(
-      systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, unicode"è", "New Corp Name", "New description", "https://newcorp.com")
-      )
-    );
-
-    vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8(""))
-    );
-    world.call(
-      systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, "", "New Corp Name", "New description", "https://newcorp.com")
-      )
-    );
-
-    vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8("ABCDEF"))
-    );
-    world.call(
-      systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, "ABCDEF", "New Corp Name", "New description", "https://newcorp.com")
-      )
-    );
-
-    vm.stopBroadcast();
   }
 
   function testRevertSetMetadataInvalidStringLength() public {
@@ -372,7 +329,7 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "NEW", longName, "New description", "https://newcorp.com"))
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, longName, "New description", "https://newcorp.com"))
     );
 
     vm.expectRevert(
@@ -380,7 +337,7 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "NEW", "", "New description", "https://newcorp.com"))
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "", "New description", "https://newcorp.com"))
     );
 
     string
@@ -403,10 +360,7 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(
-        CorporationsSystem.setMetadata,
-        (corp1, "NEW", "New Corp Name", longDescription, "https://newcorp.com")
-      )
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", longDescription, "https://newcorp.com"))
     );
 
     string
@@ -416,7 +370,7 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "NEW", "New Corp Name", "New description", longUrl))
+      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", "New description", longUrl))
     );
 
     vm.stopBroadcast();
