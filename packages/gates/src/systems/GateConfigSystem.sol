@@ -6,6 +6,8 @@ import { System } from "@latticexyz/world/src/System.sol";
 import { DeployableTokenTable } from "@eveworld/world/src/codegen/tables/DeployableTokenTable.sol";
 import { IERC721 } from "@eveworld/world/src/modules/eve-erc721-puppet/IERC721.sol";
 import { Gates } from "../codegen/tables/Gates.sol";
+import { GatesCharacterExceptions } from "../codegen/tables/GatesCharacterExceptions.sol";
+import { GatesCorpExceptions } from "../codegen/tables/GatesCorpExceptions.sol";
 import { GateConfigErrors } from "./GateConfigErrors.sol";
 
 contract GateConfigSystem is System {
@@ -29,5 +31,21 @@ contract GateConfigSystem is System {
     } else {
       Gates.setDefaultRule(gateId, allow);
     }
+  }
+
+  function addCharacterException(uint256 gateId, uint256 characterId) public onlyOwner(gateId) {
+    GatesCharacterExceptions.set(gateId, characterId, true);
+  }
+
+  function removeCharacterException(uint256 gateId, uint256 characterId) public onlyOwner(gateId) {
+    GatesCharacterExceptions.set(gateId, characterId, false);
+  }
+
+  function addCorpException(uint256 gateId, uint256 corpId) public onlyOwner(gateId) {
+    GatesCorpExceptions.set(gateId, corpId, true);
+  }
+
+  function removeCorpException(uint256 gateId, uint256 corpId) public onlyOwner(gateId) {
+    GatesCorpExceptions.set(gateId, corpId, false);
   }
 }

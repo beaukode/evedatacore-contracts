@@ -204,6 +204,87 @@ contract CorporationsTest is MudTest {
     vm.startBroadcast(player2);
     vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
     world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (100, true)));
+    assertEq(Gates.getCreatedAt(100), 0);
+    vm.stopBroadcast();
+  }
+
+  function testAddCorpException() public {
+    vm.startBroadcast(player1);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (100, corp1)));
+    bool corpException = GatesCorpExceptions.get(100, corp1);
+    assertTrue(corpException);
+    vm.stopBroadcast();
+  }
+
+  function testAddCorpExceptionRevertIfNotOwner() public {
+    vm.startBroadcast(player2);
+    vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (100, corp1)));
+    bool corpException = GatesCorpExceptions.get(100, corp1);
+    assertFalse(corpException);
+    vm.stopBroadcast();
+  }
+
+  function testRemoveCorpException() public {
+    vm.startBroadcast(player1);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (100, corp1)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCorpException, (100, corp1)));
+    bool corpException = GatesCorpExceptions.get(100, corp1);
+    assertFalse(corpException);
+    vm.stopBroadcast();
+  }
+
+  function testRemoveCorpExceptionRevertIfNotOwner() public {
+    vm.startBroadcast(player1);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (100, corp1)));
+    vm.stopBroadcast();
+
+    vm.startBroadcast(player2);
+    vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCorpException, (100, corp1)));
+
+    // The record should still be there
+    bool corpException = GatesCorpExceptions.get(100, corp1);
+    assertTrue(corpException);
+    vm.stopBroadcast();
+  }
+
+  function testAddCharacterException() public {
+    vm.startBroadcast(player1);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (100, 71)));
+    bool characterException = GatesCharacterExceptions.get(100, 71);
+    assertTrue(characterException);
+    vm.stopBroadcast();
+  }
+
+  function testAddCharacterExceptionRevertIfNotOwner() public {
+    vm.startBroadcast(player2);
+    vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (100, 71)));
+    bool characterException = GatesCharacterExceptions.get(100, 71);
+    assertFalse(characterException);
+    vm.stopBroadcast();
+  }
+
+  function testRemoveCharacterException() public {
+    vm.startBroadcast(player1);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (100, 71)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCharacterException, (100, 71)));
+    bool characterException = GatesCharacterExceptions.get(100, 71);
+    assertFalse(characterException);
+    vm.stopBroadcast();
+  }
+
+  function testRemoveCharacterExceptionRevertIfNotOwner() public {
+    vm.startBroadcast(player1);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (100, 71)));
+    vm.stopBroadcast();
+
+    vm.startBroadcast(player2);
+    vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCharacterException, (100, 71)));
+    bool characterException = GatesCharacterExceptions.get(100, 71);
+    assertTrue(characterException);
     vm.stopBroadcast();
   }
 }
