@@ -29,6 +29,7 @@
   },
   "workspaces": [
     "packages/test-fixtures",
-    "packages/corporations"
+    "packages/corporations",
+    "packages/gates"
   ]
 }

@@ -36,3 +36,12 @@ jobs:
           rm -Rf test
           npm run deploy:testnet
           npm run verify:testnet
+      - name: "Deploy gates"
+        env:
+          PRIVATE_KEY: ${{ secrets.GATES_PRIVATE_KEY }}
+          GATES_NAMESPACE: ${{ vars.GATES_NAMESPACE }}
+        run: |
+          cd packages/gates
+          rm -Rf test
+          npm run deploy:testnet
+          npm run verify:testnet
