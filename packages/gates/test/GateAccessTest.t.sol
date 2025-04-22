@@ -8,7 +8,7 @@ import { ResourceId } from "@latticexyz/world/src/WorldResourceId.sol";
 import { FRONTIER_WORLD_DEPLOYMENT_NAMESPACE } from "@eveworld/common-constants/src/constants.sol";
 import { IBaseWorld } from "@eveworld/world/src/codegen/world/IWorld.sol";
 import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/CharactersByAddressTable.sol";
-import { EntityRecordOffchainTableData } from "@eveworld/world/src/codegen/tables/EntityRecordOffchainTable.sol";
+import { EntityRecordOffchainTable, EntityRecordOffchainTableData } from "@eveworld/world/src/codegen/tables/EntityRecordOffchainTable.sol";
 import { EntityRecordData } from "@eveworld/world/src/modules/smart-character/types.sol";
 import { SmartCharacterLib } from "@eveworld/world/src/modules/smart-character/SmartCharacterLib.sol";
 import { Gates } from "../src/codegen/tables/Gates.sol";
@@ -31,6 +31,7 @@ contract CorporationsTest is MudTest {
   uint256 private corp3 = 70000003;
   uint256 private corp4 = 70000004;
 
+  uint256 private deployerPrivateKey;
   address private admin;
   address private player1;
   address private player2;
@@ -44,7 +45,7 @@ contract CorporationsTest is MudTest {
     super.setUp();
     world = IWorld(worldAddress);
 
-    uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+    deployerPrivateKey = vm.envUint("PRIVATE_KEY");
     admin = vm.addr(deployerPrivateKey);
     player1 = vm.addr(vm.envUint("PLAYER1_PRIVATE_KEY"));
     player2 = vm.addr(vm.envUint("PLAYER2_PRIVATE_KEY"));
@@ -117,6 +118,19 @@ contract CorporationsTest is MudTest {
 
     vm.startBroadcast(deployerPrivateKey);
 
+    EntityRecordOffchainTable.set(
+      100,
+      EntityRecordOffchainTableData({ name: "Gate 100", dappURL: "https://evedataco.re/dapps/gates", description: "" })
+    );
+    EntityRecordOffchainTable.set(
+      101,
+      EntityRecordOffchainTableData({ name: "Gate 101", dappURL: "https://evedataco.re/dapps/gates", description: "" })
+    );
+    EntityRecordOffchainTable.set(
+      999,
+      EntityRecordOffchainTableData({ name: "Gate 999", dappURL: "https://evedataco.re/dapps/gates", description: "" })
+    );
+
     Gates.set(100, false, block.timestamp);
     // Corp 1 can access gate 100
     GatesCorpExceptions.set(100, corp1, true);
@@ -177,5 +191,19 @@ contract CorporationsTest is MudTest {
     assertFalse(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (99, 100, 0))), (bool)));
     // Unknown character cannot access gate 101
     assertFalse(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (99, 101, 0))), (bool)));
+  }
+
+  function testDisableFilteringIfWrongDappURL() public {
+    vm.startBroadcast(deployerPrivateKey);
+    EntityRecordOffchainTable.set(
+      100,
+      EntityRecordOffchainTableData({ name: "Gate 100", dappURL: "https://evedataco.re/wrong/url", description: "" })
+    );
+    vm.stopBroadcast();
+
+    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (71, 100, 0))), (bool)));
+    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (72, 100, 0))), (bool)));
+    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (73, 100, 0))), (bool)));
+    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (74, 100, 0))), (bool)));  
   }
 }
