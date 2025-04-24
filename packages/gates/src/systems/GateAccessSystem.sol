@@ -5,6 +5,7 @@ import { System } from "@latticexyz/world/src/System.sol";
 
 import { CharactersTable } from "@eveworld/world/src/codegen/tables/CharactersTable.sol";
 import { EntityRecordOffchainTable } from "@eveworld/world/src/codegen/tables/EntityRecordOffchainTable.sol";
+import { GatesDapp } from "../codegen/tables/GatesDapp.sol";
 import { Gates, GatesData } from "../codegen/tables/Gates.sol";
 import { GatesCorpExceptions } from "../codegen/tables/GatesCorpExceptions.sol";
 import { GatesCharacterExceptions } from "../codegen/tables/GatesCharacterExceptions.sol";
@@ -12,7 +13,8 @@ import { GatesCharacterExceptions } from "../codegen/tables/GatesCharacterExcept
 contract GateAccessSystem is System {
   function canJump(uint256 characterId, uint256 sourceGateId, uint256) public view returns (bool) {
     string memory gateDappURL = EntityRecordOffchainTable.getDappURL(sourceGateId);
-    if (keccak256(bytes(gateDappURL)) != keccak256(bytes("https://evedataco.re/dapps/gates"))) {
+    string memory expectedDappURL = GatesDapp.getDappUrl();
+    if (keccak256(bytes(gateDappURL)) != keccak256(bytes(expectedDappURL))) {
       return true; // Disable filtering if the url is not correct
     }
 

@@ -5,6 +5,12 @@ const namespace = process.env.GATES_NAMESPACE || process.env.DEFAULT_NAMESPACE;
 export default defineWorld({
   namespace,
   tables: {
+    GatesDapp: {
+      schema: {
+        dappUrl: "string",
+      },
+      key: [],
+    },
     Gates: {
       schema: {
         gateId: "uint256",
