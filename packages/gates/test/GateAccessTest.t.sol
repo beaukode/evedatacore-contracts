@@ -11,6 +11,8 @@ import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/Cha
 import { EntityRecordOffchainTable, EntityRecordOffchainTableData } from "@eveworld/world/src/codegen/tables/EntityRecordOffchainTable.sol";
 import { EntityRecordData } from "@eveworld/world/src/modules/smart-character/types.sol";
 import { SmartCharacterLib } from "@eveworld/world/src/modules/smart-character/SmartCharacterLib.sol";
+
+import { GatesDapp } from "../src/codegen/tables/GatesDapp.sol";
 import { Gates } from "../src/codegen/tables/Gates.sol";
 import { GatesCorpExceptions } from "../src/codegen/tables/GatesCorpExceptions.sol";
 import { GatesCharacterExceptions } from "../src/codegen/tables/GatesCharacterExceptions.sol";
@@ -117,6 +119,8 @@ contract CorporationsTest is MudTest {
     }
 
     vm.startBroadcast(deployerPrivateKey);
+
+    GatesDapp.setDappUrl("https://evedataco.re/dapps/gates");
 
     EntityRecordOffchainTable.set(
       100,

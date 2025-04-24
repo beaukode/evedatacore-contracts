@@ -38,7 +38,7 @@ contract GateConfigSystem is System {
   }
 
   function removeCharacterException(uint256 gateId, uint256 characterId) public onlyOwner(gateId) {
-    GatesCharacterExceptions.set(gateId, characterId, false);
+    GatesCharacterExceptions.deleteRecord(gateId, characterId);
   }
 
   function addCorpException(uint256 gateId, uint256 corpId) public onlyOwner(gateId) {
@@ -46,6 +46,6 @@ contract GateConfigSystem is System {
   }
 
   function removeCorpException(uint256 gateId, uint256 corpId) public onlyOwner(gateId) {
-    GatesCorpExceptions.set(gateId, corpId, false);
+    GatesCorpExceptions.deleteRecord(gateId, corpId);
   }
 }
