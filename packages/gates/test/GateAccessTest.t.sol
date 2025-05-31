@@ -5,7 +5,6 @@ import "forge-std/Test.sol";
 import { MudTest } from "@latticexyz/world/test/MudTest.t.sol";
 import { ResourceId } from "@latticexyz/world/src/WorldResourceId.sol";
 
-import { FRONTIER_WORLD_DEPLOYMENT_NAMESPACE } from "@eveworld/common-constants/src/constants.sol";
 import { IBaseWorld } from "@eveworld/world/src/codegen/world/IWorld.sol";
 import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/CharactersByAddressTable.sol";
 import { EntityRecordOffchainTable, EntityRecordOffchainTableData } from "@eveworld/world/src/codegen/tables/EntityRecordOffchainTable.sol";
@@ -58,9 +57,11 @@ contract CorporationsTest is MudTest {
     bytes14 namespace = bytes14(abi.encodePacked(vm.envOr("GATES_NAMESPACE", vm.envString("DEFAULT_NAMESPACE"))));
     systemId = Utils.gatesAccessSystemId(namespace);
 
+    bytes14 frontierWorldNamespace = bytes14(abi.encodePacked(vm.envString("FRONTIER_WORLD_NAMESPACE")));
+
     smartCharacter = SmartCharacterLib.World({
       iface: IBaseWorld(worldAddress),
-      namespace: FRONTIER_WORLD_DEPLOYMENT_NAMESPACE
+      namespace: frontierWorldNamespace
     });
 
     if (CharactersByAddressTable.get(admin) == 0) {
@@ -208,6 +209,6 @@ contract CorporationsTest is MudTest {
     assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (71, 100, 0))), (bool)));
     assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (72, 100, 0))), (bool)));
     assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (73, 100, 0))), (bool)));
-    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (74, 100, 0))), (bool)));  
+    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (74, 100, 0))), (bool)));
   }
 }

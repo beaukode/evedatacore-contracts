@@ -5,7 +5,6 @@ import "forge-std/Test.sol";
 import { MudTest } from "@latticexyz/world/test/MudTest.t.sol";
 import { ResourceId } from "@latticexyz/world/src/WorldResourceId.sol";
 
-import { FRONTIER_WORLD_DEPLOYMENT_NAMESPACE } from "@eveworld/common-constants/src/constants.sol";
 import { IBaseWorld } from "@eveworld/world/src/codegen/world/IWorld.sol";
 import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/CharactersByAddressTable.sol";
 import { EntityRecordOffchainTableData } from "@eveworld/world/src/codegen/tables/EntityRecordOffchainTable.sol";
@@ -58,12 +57,14 @@ contract CorporationsTest is MudTest {
     bytes14 namespace = bytes14(abi.encodePacked(vm.envOr("GATES_NAMESPACE", vm.envString("DEFAULT_NAMESPACE"))));
     systemId = Utils.gatesConfigSystemId(namespace);
 
+    bytes14 frontierWorldNamespace = bytes14(abi.encodePacked(vm.envString("FRONTIER_WORLD_NAMESPACE")));
+
     smartCharacter = SmartCharacterLib.World({
       iface: IBaseWorld(worldAddress),
-      namespace: FRONTIER_WORLD_DEPLOYMENT_NAMESPACE
+     namespace: frontierWorldNamespace
     });
-    smartDeployable = SmartDeployableLib.World(world, FRONTIER_WORLD_DEPLOYMENT_NAMESPACE);
-    smartGate = SmartGateLib.World(world, FRONTIER_WORLD_DEPLOYMENT_NAMESPACE);
+    smartDeployable = SmartDeployableLib.World(world, frontierWorldNamespace);
+    smartGate = SmartGateLib.World(world, frontierWorldNamespace);
 
     if (CharactersByAddressTable.get(admin) == 0) {
       smartCharacter.createCharacter(
