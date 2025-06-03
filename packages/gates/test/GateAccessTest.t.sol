@@ -4,12 +4,12 @@ pragma solidity >=0.8.24;
 import "forge-std/Test.sol";
 import { MudTest } from "@latticexyz/world/test/MudTest.t.sol";
 import { ResourceId } from "@latticexyz/world/src/WorldResourceId.sol";
+import { WorldResourceIdInstance } from "@latticexyz/world/src/WorldResourceId.sol";
 
-import { IBaseWorld } from "@eveworld/world/src/codegen/world/IWorld.sol";
-import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/CharactersByAddressTable.sol";
-import { EntityRecordOffchainTable, EntityRecordOffchainTableData } from "@eveworld/world/src/codegen/tables/EntityRecordOffchainTable.sol";
-import { EntityRecordData } from "@eveworld/world/src/modules/smart-character/types.sol";
-import { SmartCharacterLib } from "@eveworld/world/src/modules/smart-character/SmartCharacterLib.sol";
+import { IWorldWithContext } from "@eveworld/smart-object-framework-v2/src/IWorldWithContext.sol";
+import { smartCharacterSystem } from "@eveworld/world-v2/src/namespaces/evefrontier/codegen/systems/SmartCharacterSystemLib.sol";
+import { Tenant, CharactersByAccount, EntityRecordMetadata } from "@eveworld/world-v2/src/namespaces/evefrontier/codegen/index.sol";
+import { EntityRecordParams, EntityMetadataParams } from "@eveworld/world-v2/src/namespaces/evefrontier/systems/entity-record/types.sol";
 
 import { GatesDapp } from "../src/codegen/tables/GatesDapp.sol";
 import { Gates } from "../src/codegen/tables/Gates.sol";
@@ -18,19 +18,17 @@ import { GatesCharacterExceptions } from "../src/codegen/tables/GatesCharacterEx
 
 import { GateAccessSystem } from "../src/systems/GateAccessSystem.sol";
 
-import { IWorld } from "../src/codegen/world/IWorld.sol";
 import { Utils } from "../src/systems/Utils.sol";
 
-contract CorporationsTest is MudTest {
-  using SmartCharacterLib for SmartCharacterLib.World;
+contract GateAccessTest is MudTest {
+  using WorldResourceIdInstance for ResourceId;
+  IWorldWithContext private world;
 
-  IWorld private world;
-  SmartCharacterLib.World private smartCharacter;
+  uint256 private smartCharacterTypeId;
+  bytes32 private tenantId;
 
-  uint256 private corp1 = 70000001;
-  uint256 private corp2 = 70000002;
-  uint256 private corp3 = 70000003;
-  uint256 private corp4 = 70000004;
+  mapping(string => uint256) private corps;
+  mapping(string => uint256) private characters;
 
   uint256 private deployerPrivateKey;
   address private admin;
@@ -43,8 +41,19 @@ contract CorporationsTest is MudTest {
 
   //Setup for the tests
   function setUp() public override {
+    vm.pauseGasMetering();
     super.setUp();
-    world = IWorld(worldAddress);
+    world = IWorldWithContext(worldAddress);
+
+    smartCharacterTypeId = vm.envUint("CHARACTER_TYPE_ID");
+
+    tenantId = Tenant.get();
+
+    // Initialize corps mapping
+    corps["corp1"] = 70000001;
+    corps["corp2"] = 70000002;
+    corps["corp3"] = 70000003;
+    corps["corp4"] = 70000004;
 
     deployerPrivateKey = vm.envUint("PRIVATE_KEY");
     admin = vm.addr(deployerPrivateKey);
@@ -57,101 +66,81 @@ contract CorporationsTest is MudTest {
     bytes14 namespace = bytes14(abi.encodePacked(vm.envOr("GATES_NAMESPACE", vm.envString("DEFAULT_NAMESPACE"))));
     systemId = Utils.gatesAccessSystemId(namespace);
 
-    bytes14 frontierWorldNamespace = bytes14(abi.encodePacked(vm.envString("FRONTIER_WORLD_NAMESPACE")));
-
-    smartCharacter = SmartCharacterLib.World({
-      iface: IBaseWorld(worldAddress),
-      namespace: frontierWorldNamespace
-    });
-
-    if (CharactersByAddressTable.get(admin) == 0) {
-      smartCharacter.createCharacter(
-        42,
-        admin,
-        corp1,
-        EntityRecordData({ typeId: 123, itemId: 0, volume: 0 }),
-        EntityRecordOffchainTableData({
-          name: "beauKode",
-          dappURL: "https://evedataco.re",
-          description: "EVE Datacore website"
-        }),
-        ""
-      );
-    }
-    if (CharactersByAddressTable.get(player1) == 0) {
-      smartCharacter.createCharacter(
-        71,
-        player1,
-        corp1,
-        EntityRecordData({ typeId: 123, itemId: 0, volume: 0 }),
-        EntityRecordOffchainTableData({ name: "player1", dappURL: "", description: "" }),
-        ""
-      );
-    }
-    if (CharactersByAddressTable.get(player2) == 0) {
-      smartCharacter.createCharacter(
-        72,
-        player2,
-        corp2,
-        EntityRecordData({ typeId: 123, itemId: 0, volume: 0 }),
-        EntityRecordOffchainTableData({ name: "player2", dappURL: "", description: "" }),
-        ""
-      );
-    }
-    if (CharactersByAddressTable.get(player3) == 0) {
-      smartCharacter.createCharacter(
-        73,
-        player3,
-        corp3,
-        EntityRecordData({ typeId: 123, itemId: 0, volume: 0 }),
-        EntityRecordOffchainTableData({ name: "player3", dappURL: "", description: "" }),
-        ""
-      );
-    }
-    if (CharactersByAddressTable.get(player4) == 0) {
-      smartCharacter.createCharacter(
-        74,
-        player4,
-        corp4,
-        EntityRecordData({ typeId: 123, itemId: 0, volume: 0 }),
-        EntityRecordOffchainTableData({ name: "player4", dappURL: "", description: "" }),
-        ""
-      );
-    }
-
     vm.startBroadcast(deployerPrivateKey);
+
+    characters["player1"] = _calculateObjectId(smartCharacterTypeId, 71, true);
+    characters["player2"] = _calculateObjectId(smartCharacterTypeId, 72, true);
+    characters["player3"] = _calculateObjectId(smartCharacterTypeId, 73, true);
+    characters["player4"] = _calculateObjectId(smartCharacterTypeId, 74, true);
+
+    if (CharactersByAccount.get(admin) == 0) {
+      smartCharacterSystem.createCharacter(
+        _calculateObjectId(smartCharacterTypeId, 42, true),
+        admin,
+        corps["corp1"],
+        EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 42, volume: 0, tenantId: tenantId }),
+        EntityMetadataParams({ name: "beauKode", dappURL: "https://evedataco.re", description: "EVE Datacore website" })
+      );
+    }
+    if (CharactersByAccount.get(player1) == 0) {
+      smartCharacterSystem.createCharacter(
+        characters["player1"],
+        player1,
+        corps["corp1"],
+        EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 71, volume: 0, tenantId: tenantId }),
+        EntityMetadataParams({ name: "player1", dappURL: "", description: "" })
+      );
+    }
+    if (CharactersByAccount.get(player2) == 0) {
+      smartCharacterSystem.createCharacter(
+        characters["player2"],
+        player2,
+        corps["corp2"],
+        EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 72, volume: 0, tenantId: tenantId }),
+        EntityMetadataParams({ name: "player2", dappURL: "", description: "" })
+      );
+    }
+    if (CharactersByAccount.get(player3) == 0) {
+      smartCharacterSystem.createCharacter(
+        characters["player3"],
+        player3,
+        corps["corp3"],
+        EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 73, volume: 0, tenantId: tenantId }),
+        EntityMetadataParams({ name: "player3", dappURL: "", description: "" })
+      );
+    }
+    if (CharactersByAccount.get(player4) == 0) {
+      smartCharacterSystem.createCharacter(
+        characters["player4"],
+        player4,
+        corps["corp4"],
+        EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 74, volume: 0, tenantId: tenantId }),
+        EntityMetadataParams({ name: "player4", dappURL: "", description: "" })
+      );
+    }
 
     GatesDapp.setDappUrl("https://evedataco.re/dapps/gates");
 
-    EntityRecordOffchainTable.set(
-      100,
-      EntityRecordOffchainTableData({ name: "Gate 100", dappURL: "https://evedataco.re/dapps/gates", description: "" })
-    );
-    EntityRecordOffchainTable.set(
-      101,
-      EntityRecordOffchainTableData({ name: "Gate 101", dappURL: "https://evedataco.re/dapps/gates", description: "" })
-    );
-    EntityRecordOffchainTable.set(
-      999,
-      EntityRecordOffchainTableData({ name: "Gate 999", dappURL: "https://evedataco.re/dapps/gates", description: "" })
-    );
+    EntityRecordMetadata.set(100, "Gate 100", "https://evedataco.re/dapps/gates", "");
+    EntityRecordMetadata.set(101, "Gate 101", "https://evedataco.re/dapps/gates", "");
+    EntityRecordMetadata.set(999, "Gate 999", "https://evedataco.re/dapps/gates", "");
 
     Gates.set(100, false, block.timestamp);
     // Corp 1 can access gate 100
-    GatesCorpExceptions.set(100, corp1, true);
+    GatesCorpExceptions.set(100, corps["corp1"], true);
     // Corp 2 can access gate 100
-    GatesCorpExceptions.set(100, corp2, true);
+    GatesCorpExceptions.set(100, corps["corp2"], true);
     // Player 2 can access gate 100 (Already granted by corp)
-    GatesCharacterExceptions.set(100, 72, true);
+    GatesCharacterExceptions.set(100, characters["player2"], true);
     // Player 3 can access gate 100
-    GatesCharacterExceptions.set(100, 73, true);
+    GatesCharacterExceptions.set(100, characters["player3"], true);
     // Player 4 cannot access gate 100
 
     Gates.set(101, true, block.timestamp);
     // Corp 1 cannot access gate 101
-    GatesCorpExceptions.set(101, corp1, true);
+    GatesCorpExceptions.set(101, corps["corp1"], true);
     // Player 2 cannot access gate 101
-    GatesCharacterExceptions.set(101, 72, true);
+    GatesCharacterExceptions.set(101, characters["player2"], true);
     // Player 3 can access gate 101
     // player 4 can access gate 101
 
@@ -160,35 +149,95 @@ contract CorporationsTest is MudTest {
 
   function testGate100Access() public {
     // Player 1 can access gate 100
-    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (71, 100, 0))), (bool)));
+    assertTrue(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player1"], 100, 0))),
+        (bool)
+      )
+    );
     // Player 2 can access gate 100
-    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (72, 100, 0))), (bool)));
+    assertTrue(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player2"], 100, 0))),
+        (bool)
+      )
+    );
     // Player 3 can access gate 100
-    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (73, 100, 0))), (bool)));
+    assertTrue(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player3"], 100, 0))),
+        (bool)
+      )
+    );
     // Player 4 cannot access gate 100
-    assertFalse(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (74, 100, 0))), (bool)));
+    assertFalse(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player4"], 100, 0))),
+        (bool)
+      )
+    );
   }
 
   function testGate101Access() public {
     // Player 1 cannot access gate 101
-    assertFalse(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (71, 101, 0))), (bool)));
+    assertFalse(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player1"], 101, 0))),
+        (bool)
+      )
+    );
     // Player 2 cannot access gate 101
-    assertFalse(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (72, 101, 0))), (bool)));
+    assertFalse(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player2"], 101, 0))),
+        (bool)
+      )
+    );
     // Player 3 can access gate 101
-    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (73, 101, 0))), (bool)));
+    assertTrue(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player3"], 101, 0))),
+        (bool)
+      )
+    );
     // Player 4 can access gate 101
-    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (74, 101, 0))), (bool)));
+    assertTrue(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player4"], 101, 0))),
+        (bool)
+      )
+    );
   }
 
   function testDenyUnknownGate() public {
     // Player 1 cannot access gate 999
-    assertFalse(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (71, 999, 0))), (bool)));
+    assertFalse(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player1"], 999, 0))),
+        (bool)
+      )
+    );
     // Player 2 cannot access gate 999
-    assertFalse(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (72, 999, 0))), (bool)));
+    assertFalse(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player2"], 999, 0))),
+        (bool)
+      )
+    );
     // Player 3 cannot access gate 999
-    assertFalse(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (73, 999, 0))), (bool)));
+    assertFalse(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player3"], 999, 0))),
+        (bool)
+      )
+    );
     // Player 4 cannot access gate 999
-    assertFalse(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (74, 999, 0))), (bool)));
+    assertFalse(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player4"], 999, 0))),
+        (bool)
+      )
+    );
   }
 
   function testDenyUnknownCharacter() public {
@@ -200,15 +249,42 @@ contract CorporationsTest is MudTest {
 
   function testDisableFilteringIfWrongDappURL() public {
     vm.startBroadcast(deployerPrivateKey);
-    EntityRecordOffchainTable.set(
-      100,
-      EntityRecordOffchainTableData({ name: "Gate 100", dappURL: "https://evedataco.re/wrong/url", description: "" })
-    );
+    EntityRecordMetadata.set(100, "Gate 100", "https://evedataco.re/wrong/url", "");
     vm.stopBroadcast();
 
-    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (71, 100, 0))), (bool)));
-    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (72, 100, 0))), (bool)));
-    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (73, 100, 0))), (bool)));
-    assertTrue(abi.decode(world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (74, 100, 0))), (bool)));
+    assertTrue(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player1"], 100, 0))),
+        (bool)
+      )
+    );
+    assertTrue(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player2"], 100, 0))),
+        (bool)
+      )
+    );
+    assertTrue(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player3"], 100, 0))),
+        (bool)
+      )
+    );
+    assertTrue(
+      abi.decode(
+        world.call(systemId, abi.encodeCall(GateAccessSystem.canJump, (characters["player4"], 100, 0))),
+        (bool)
+      )
+    );
+  }
+
+  function _calculateObjectId(uint256 typeId, uint256 itemId, bool isSingleton) internal view returns (uint256) {
+    if (isSingleton) {
+      // For singleton items: hash of tenantId and itemId
+      return uint256(keccak256(abi.encodePacked(tenantId, itemId)));
+    } else {
+      // For non-singleton items: hash of typeId
+      return uint256(keccak256(abi.encodePacked(tenantId, typeId)));
+    }
   }
 }
