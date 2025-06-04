@@ -4,17 +4,16 @@ pragma solidity >=0.8.24;
 import "forge-std/Test.sol";
 import { MudTest } from "@latticexyz/world/test/MudTest.t.sol";
 import { ResourceId } from "@latticexyz/world/src/WorldResourceId.sol";
+import { WorldResourceIdInstance } from "@latticexyz/world/src/WorldResourceId.sol";
 
-import { FRONTIER_WORLD_DEPLOYMENT_NAMESPACE } from "@eveworld/common-constants/src/constants.sol";
-import { IBaseWorld } from "@eveworld/world/src/codegen/world/IWorld.sol";
-import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/CharactersByAddressTable.sol";
-import { EntityRecordOffchainTableData } from "@eveworld/world/src/codegen/tables/EntityRecordOffchainTable.sol";
-import { EntityRecordData as EntityRecordDataCharacter } from "@eveworld/world/src/modules/smart-character/types.sol";
-import { SmartCharacterLib } from "@eveworld/world/src/modules/smart-character/SmartCharacterLib.sol";
-import { SmartDeployableLib } from "@eveworld/world/src/modules/smart-deployable/SmartDeployableLib.sol";
-import { SmartObjectData } from "@eveworld/world/src/modules/smart-deployable/types.sol";
-import { SmartGateLib } from "@eveworld/world/src/modules/smart-gate/SmartGateLib.sol";
-import { EntityRecordData, WorldPosition, Coord } from "@eveworld/world/src/modules/smart-storage-unit/types.sol";
+import { IWorldWithContext } from "@eveworld/smart-object-framework-v2/src/IWorldWithContext.sol";
+import { smartCharacterSystem } from "@eveworld/world-v2/src/namespaces/evefrontier/codegen/systems/SmartCharacterSystemLib.sol";
+import { smartGateSystem } from "@eveworld/world-v2/src/namespaces/evefrontier/codegen/systems/SmartGateSystemLib.sol";
+import { deployableSystem } from "@eveworld/world-v2/src/namespaces/evefrontier/codegen/systems/DeployableSystemLib.sol";
+
+import { Tenant, LocationData, CharactersByAccount } from "@eveworld/world-v2/src/namespaces/evefrontier/codegen/index.sol";
+import { EntityRecordParams, EntityMetadataParams } from "@eveworld/world-v2/src/namespaces/evefrontier/systems/entity-record/types.sol";
+import { CreateAndAnchorParams } from "@eveworld/world-v2/src/namespaces/evefrontier/systems/deployable/types.sol";
 
 import { Gates, GatesData } from "../src/codegen/tables/Gates.sol";
 import { GatesCorpExceptions } from "../src/codegen/tables/GatesCorpExceptions.sol";
@@ -22,18 +21,16 @@ import { GatesCharacterExceptions } from "../src/codegen/tables/GatesCharacterEx
 
 import { GateConfigSystem } from "../src/systems/GateConfigSystem.sol";
 import { GateConfigErrors } from "../src/systems/GateConfigErrors.sol";
-import { IWorld } from "../src/codegen/world/IWorld.sol";
 import { Utils } from "../src/systems/Utils.sol";
 
-contract CorporationsTest is MudTest {
-  using SmartCharacterLib for SmartCharacterLib.World;
-  using SmartDeployableLib for SmartDeployableLib.World;
-  using SmartGateLib for SmartGateLib.World;
+contract GateConfigTest is MudTest {
+  using WorldResourceIdInstance for ResourceId;
+  IWorldWithContext private world;
 
-  IWorld private world;
-  SmartCharacterLib.World private smartCharacter;
-  SmartDeployableLib.World private smartDeployable;
-  SmartGateLib.World private smartGate;
+  uint256 private smartCharacterTypeId;
+  bytes32 private tenantId;
+
+  uint256 private constant SMART_GATE_TYPE_ID = 84955;
 
   uint256 private corp1 = 70000001;
   uint256 private corp2 = 70000002;
@@ -42,12 +39,20 @@ contract CorporationsTest is MudTest {
   address private player1;
   address private player2;
 
+  uint256 private smartGate1;
+  uint256 private smartGate2;
+
   ResourceId private systemId;
 
   //Setup for the tests
   function setUp() public override {
+    vm.pauseGasMetering();
     super.setUp();
-    world = IWorld(worldAddress);
+    world = IWorldWithContext(worldAddress);
+
+    smartCharacterTypeId = vm.envUint("CHARACTER_TYPE_ID");
+
+    tenantId = Tenant.get();
 
     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
     admin = vm.addr(deployerPrivateKey);
@@ -58,91 +63,74 @@ contract CorporationsTest is MudTest {
     bytes14 namespace = bytes14(abi.encodePacked(vm.envOr("GATES_NAMESPACE", vm.envString("DEFAULT_NAMESPACE"))));
     systemId = Utils.gatesConfigSystemId(namespace);
 
-    smartCharacter = SmartCharacterLib.World({
-      iface: IBaseWorld(worldAddress),
-      namespace: FRONTIER_WORLD_DEPLOYMENT_NAMESPACE
-    });
-    smartDeployable = SmartDeployableLib.World(world, FRONTIER_WORLD_DEPLOYMENT_NAMESPACE);
-    smartGate = SmartGateLib.World(world, FRONTIER_WORLD_DEPLOYMENT_NAMESPACE);
-
-    if (CharactersByAddressTable.get(admin) == 0) {
-      smartCharacter.createCharacter(
-        42,
-        admin,
-        corp1,
-        EntityRecordDataCharacter({ typeId: 123, itemId: 0, volume: 0 }),
-        EntityRecordOffchainTableData({
-          name: "beauKode",
-          dappURL: "https://evedataco.re",
-          description: "EVE Datacore website"
-        }),
-        ""
-      );
-    }
-    if (CharactersByAddressTable.get(player1) == 0) {
-      smartCharacter.createCharacter(
-        71,
-        player1,
-        corp1,
-        EntityRecordDataCharacter({ typeId: 123, itemId: 0, volume: 0 }),
-        EntityRecordOffchainTableData({ name: "player1", dappURL: "", description: "" }),
-        ""
-      );
-    }
-    if (CharactersByAddressTable.get(player2) == 0) {
-      smartCharacter.createCharacter(
-        72,
-        player2,
-        corp2,
-        EntityRecordDataCharacter({ typeId: 123, itemId: 0, volume: 0 }),
-        EntityRecordOffchainTableData({ name: "player2", dappURL: "", description: "" }),
-        ""
-      );
-    }
-
     vm.startBroadcast(deployerPrivateKey);
 
-    createSmartGate(100);
-    createSmartGate(101);
+    if (CharactersByAccount.get(admin) == 0) {
+      smartCharacterSystem.createCharacter(
+        _calculateObjectId(smartCharacterTypeId, 42, true),
+        admin,
+        corp1,
+        EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 42, volume: 0, tenantId: tenantId }),
+        EntityMetadataParams({ name: "beauKode", dappURL: "https://evedataco.re", description: "EVE Datacore website" })
+      );
+    }
+    if (CharactersByAccount.get(player1) == 0) {
+      smartCharacterSystem.createCharacter(
+        _calculateObjectId(smartCharacterTypeId, 71, true),
+        player1,
+        corp1,
+        EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 71, volume: 0, tenantId: tenantId }),
+        EntityMetadataParams({ name: "player1", dappURL: "", description: "" })
+      );
+    }
+    if (CharactersByAccount.get(player2) == 0) {
+      smartCharacterSystem.createCharacter(
+        _calculateObjectId(smartCharacterTypeId, 72, true),
+        player2,
+        corp2,
+        EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 72, volume: 0, tenantId: tenantId }),
+        EntityMetadataParams({ name: "player2", dappURL: "", description: "" })
+      );
+    }
+
+    smartGate1 = createSmartGate(100);
+    smartGate2 = createSmartGate(101);
 
     vm.stopBroadcast();
   }
 
-  function createSmartGate(uint256 smartObjectId) public {
-    vm.assume(smartObjectId != 0);
-    EntityRecordData memory entityRecordData = EntityRecordData({ typeId: 12345, itemId: 45, volume: 10 });
-    SmartObjectData memory smartObjectData = SmartObjectData({ owner: player1, tokenURI: "test" });
-    WorldPosition memory worldPosition = WorldPosition({
-      solarSystemId: 1,
-      position: Coord({ x: 10000, y: 10000, z: 10000 })
+  function createSmartGate(uint256 itemId) internal returns (uint256) {
+    uint256 smartObjectId = _calculateObjectId(SMART_GATE_TYPE_ID, itemId, true);
+    EntityRecordParams memory entityRecordData = EntityRecordParams({
+      typeId: SMART_GATE_TYPE_ID,
+      itemId: itemId,
+      volume: 10000,
+      tenantId: tenantId
     });
+    LocationData memory worldPosition = LocationData({ solarSystemId: 1, x: 10000, y: 10000, z: 10000 });
 
-    smartGate.createAndAnchorSmartGate(
-      smartObjectId,
-      entityRecordData,
-      smartObjectData,
-      worldPosition,
-      1e18, // fuelUnitVolume,
-      1, // fuelConsumptionIntervalInSeconds,
-      1000000 * 1e18, // fuelMaxCapacity,
-      100000000 * 1e18 // maxDistance
+    smartGateSystem.createAndAnchorGate(
+      CreateAndAnchorParams(smartObjectId, "SG", entityRecordData, player1, worldPosition),
+      100000000 * 1e18, // maxDistance
+      0 // Network node id
     );
 
-    smartDeployable.depositFuel(smartObjectId, 100000);
-    smartDeployable.bringOnline(smartObjectId);
+    deployableSystem.bringOnline(smartObjectId);
+
+    return smartObjectId;
   }
 
   function testInitialRegistrationWithTrueDefaultRule() public {
     vm.startBroadcast(player1);
-    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (100, true)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (smartGate1, true)));
 
     // Gate 100 is registered and default rule is true
-    GatesData memory gateData = Gates.get(100);
+    GatesData memory gateData = Gates.get(smartGate1);
     assertEq(gateData.createdAt, block.timestamp);
     assertEq(gateData.defaultRule, true);
 
     // Gate 101 is not registered yet
-    gateData = Gates.get(101);
+    gateData = Gates.get(smartGate2);
     assertEq(gateData.createdAt, 0);
     assertEq(gateData.defaultRule, false);
 
@@ -151,15 +139,15 @@ contract CorporationsTest is MudTest {
 
   function testInitialRegistrationWithFalseDefaultRule() public {
     vm.startBroadcast(player1);
-    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (100, false)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (smartGate1, false)));
 
     // Gate 100 is registered and default rule is false
-    GatesData memory gateData = Gates.get(100);
+    GatesData memory gateData = Gates.get(smartGate1);
     assertEq(gateData.createdAt, block.timestamp);
     assertEq(gateData.defaultRule, false);
 
     // Gate 101 is not registered yet
-    gateData = Gates.get(101);
+    gateData = Gates.get(smartGate2);
     assertEq(gateData.createdAt, 0);
     assertEq(gateData.defaultRule, false);
 
@@ -169,10 +157,10 @@ contract CorporationsTest is MudTest {
   function testInitialRegistrationRevertIfNotOwner() public {
     vm.startBroadcast(player2);
     vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
-    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (100, true)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (smartGate1, true)));
 
     // Gate 100 still not registered
-    GatesData memory gateData = Gates.get(100);
+    GatesData memory gateData = Gates.get(smartGate1);
     assertEq(gateData.createdAt, 0);
     assertEq(gateData.defaultRule, false);
 
@@ -181,19 +169,19 @@ contract CorporationsTest is MudTest {
 
   function testUpdateDefaultRule() public {
     vm.startBroadcast(player1);
-    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (100, false)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (smartGate1, false)));
     uint256 currentTimestamp = block.timestamp;
 
     // Gate 100 is registered and default rule is false
-    GatesData memory gateData = Gates.get(100);
+    GatesData memory gateData = Gates.get(smartGate1);
     assertEq(gateData.createdAt, currentTimestamp);
     assertEq(gateData.defaultRule, false);
 
     vm.warp(block.timestamp + 100);
-    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (100, true)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (smartGate1, true)));
 
     // Gate 100 is registered and default rule is true
-    gateData = Gates.get(100);
+    gateData = Gates.get(smartGate1);
     assertEq(gateData.createdAt, currentTimestamp); // createdAt should not be updated
     assertEq(gateData.defaultRule, true);
 
@@ -203,15 +191,15 @@ contract CorporationsTest is MudTest {
   function testUpdateDefaultRuleRevertIfNotOwner() public {
     vm.startBroadcast(player2);
     vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
-    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (100, true)));
-    assertEq(Gates.getCreatedAt(100), 0);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.setDefaultRule, (smartGate1, true)));
+    assertEq(Gates.getCreatedAt(smartGate1), 0);
     vm.stopBroadcast();
   }
 
   function testAddCorpException() public {
     vm.startBroadcast(player1);
-    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (100, corp1)));
-    bool corpException = GatesCorpExceptions.get(100, corp1);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (smartGate1, corp1)));
+    bool corpException = GatesCorpExceptions.get(smartGate1, corp1);
     assertTrue(corpException);
     vm.stopBroadcast();
   }
@@ -219,40 +207,40 @@ contract CorporationsTest is MudTest {
   function testAddCorpExceptionRevertIfNotOwner() public {
     vm.startBroadcast(player2);
     vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
-    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (100, corp1)));
-    bool corpException = GatesCorpExceptions.get(100, corp1);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (smartGate1, corp1)));
+    bool corpException = GatesCorpExceptions.get(smartGate1, corp1);
     assertFalse(corpException);
     vm.stopBroadcast();
   }
 
   function testRemoveCorpException() public {
     vm.startBroadcast(player1);
-    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (100, corp1)));
-    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCorpException, (100, corp1)));
-    bool corpException = GatesCorpExceptions.get(100, corp1);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (smartGate1, corp1)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCorpException, (smartGate1, corp1)));
+    bool corpException = GatesCorpExceptions.get(smartGate1, corp1);
     assertFalse(corpException);
     vm.stopBroadcast();
   }
 
   function testRemoveCorpExceptionRevertIfNotOwner() public {
     vm.startBroadcast(player1);
-    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (100, corp1)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCorpException, (smartGate1, corp1)));
     vm.stopBroadcast();
 
     vm.startBroadcast(player2);
     vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
-    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCorpException, (100, corp1)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCorpException, (smartGate1, corp1)));
 
     // The record should still be there
-    bool corpException = GatesCorpExceptions.get(100, corp1);
+    bool corpException = GatesCorpExceptions.get(smartGate1, corp1);
     assertTrue(corpException);
     vm.stopBroadcast();
   }
 
   function testAddCharacterException() public {
     vm.startBroadcast(player1);
-    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (100, 71)));
-    bool characterException = GatesCharacterExceptions.get(100, 71);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (smartGate1, 71)));
+    bool characterException = GatesCharacterExceptions.get(smartGate1, 71);
     assertTrue(characterException);
     vm.stopBroadcast();
   }
@@ -260,31 +248,41 @@ contract CorporationsTest is MudTest {
   function testAddCharacterExceptionRevertIfNotOwner() public {
     vm.startBroadcast(player2);
     vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
-    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (100, 71)));
-    bool characterException = GatesCharacterExceptions.get(100, 71);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (smartGate1, 71)));
+    bool characterException = GatesCharacterExceptions.get(smartGate1, 71);
     assertFalse(characterException);
     vm.stopBroadcast();
   }
 
   function testRemoveCharacterException() public {
     vm.startBroadcast(player1);
-    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (100, 71)));
-    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCharacterException, (100, 71)));
-    bool characterException = GatesCharacterExceptions.get(100, 71);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (smartGate1, 71)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCharacterException, (smartGate1, 71)));
+    bool characterException = GatesCharacterExceptions.get(smartGate1, 71);
     assertFalse(characterException);
     vm.stopBroadcast();
   }
 
   function testRemoveCharacterExceptionRevertIfNotOwner() public {
     vm.startBroadcast(player1);
-    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (100, 71)));
+    world.call(systemId, abi.encodeCall(GateConfigSystem.addCharacterException, (smartGate1, 71)));
     vm.stopBroadcast();
 
     vm.startBroadcast(player2);
     vm.expectRevert(abi.encodeWithSelector(GateConfigErrors.GateConfig_Unauthorized.selector, player2, player1));
-    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCharacterException, (100, 71)));
-    bool characterException = GatesCharacterExceptions.get(100, 71);
+    world.call(systemId, abi.encodeCall(GateConfigSystem.removeCharacterException, (smartGate1, 71)));
+    bool characterException = GatesCharacterExceptions.get(smartGate1, 71);
     assertTrue(characterException);
     vm.stopBroadcast();
+  }
+
+  function _calculateObjectId(uint256 typeId, uint256 itemId, bool isSingleton) internal view returns (uint256) {
+    if (isSingleton) {
+      // For singleton items: hash of tenantId and itemId
+      return uint256(keccak256(abi.encodePacked(tenantId, itemId)));
+    } else {
+      // For non-singleton items: hash of typeId
+      return uint256(keccak256(abi.encodePacked(tenantId, typeId)));
+    }
   }
 }

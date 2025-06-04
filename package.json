@@ -8,8 +8,7 @@
     "test": "npm run test --workspaces --if-present"
   },
   "dependencies": {
-    "@eveworld/common-constants": "0.0.13",
-    "@eveworld/world": "0.0.17",
+    "@eveworld/world-v2": "file:vendors/world-v2-0.1.1-fixed.tar.gz",
     "@latticexyz/cli": "^2.2.20",
     "@latticexyz/schema-type": "2.2.16",
     "@latticexyz/world": "2.2.16",
@@ -28,8 +27,7 @@
     "solhint-plugin-mud": "2.2.9"
   },
   "workspaces": [
-    "packages/test-fixtures",
-    "packages/corporations",
+    "packages/tribes",
     "packages/gates"
   ]
 }
