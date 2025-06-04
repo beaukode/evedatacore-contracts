@@ -8,7 +8,6 @@
     "test": "npm run test --workspaces --if-present"
   },
   "dependencies": {
-    "@eveworld/world": "0.0.17",
     "@eveworld/world-v2": "file:vendors/world-v2-0.1.1-fixed.tar.gz",
     "@latticexyz/cli": "^2.2.20",
     "@latticexyz/schema-type": "2.2.16",
