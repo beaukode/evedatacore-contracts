@@ -1,7 +1,7 @@
 {
-  "name": "evedatacore-corporations",
+  "name": "evedatacore-tribes",
   "version": "1.0.0",
-  "description": "EVE Datacore corporations",
+  "description": "EVE Datacore tribes",
   "main": "index.js",
   "devDependencies": {},
   "scripts": {

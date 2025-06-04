@@ -16,9 +16,9 @@ import { Schema } from "@latticexyz/store/src/Schema.sol";
 import { EncodedLengths, EncodedLengthsLib } from "@latticexyz/store/src/EncodedLengths.sol";
 import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
 
-library CorporationsTickers {
-  // Hex below is the result of `WorldResourceIdLib.encode({ namespace: "beauKode_dev", name: "CorporationsTick", typeId: RESOURCE_TABLE });`
-  ResourceId constant _tableId = ResourceId.wrap(0x7462626561754b6f64655f6465760000436f72706f726174696f6e735469636b);
+library TribesTickers {
+  // Hex below is the result of `WorldResourceIdLib.encode({ namespace: "beauKode_dev", name: "TribesTickers", typeId: RESOURCE_TABLE });`
+  ResourceId constant _tableId = ResourceId.wrap(0x7462626561754b6f64655f64657600005472696265735469636b657273000000);
 
   FieldLayout constant _fieldLayout =
     FieldLayout.wrap(0x0020010020000000000000000000000000000000000000000000000000000000);
@@ -43,7 +43,7 @@ library CorporationsTickers {
    */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
     fieldNames = new string[](1);
-    fieldNames[0] = "corpId";
+    fieldNames[0] = "tribeId";
   }
 
   /**
@@ -61,9 +61,9 @@ library CorporationsTickers {
   }
 
   /**
-   * @notice Get corpId.
+   * @notice Get tribeId.
    */
-  function getCorpId(bytes8 ticker) internal view returns (uint256 corpId) {
+  function getTribeId(bytes8 ticker) internal view returns (uint256 tribeId) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(ticker);
 
@@ -72,9 +72,9 @@ library CorporationsTickers {
   }
 
   /**
-   * @notice Get corpId.
+   * @notice Get tribeId.
    */
-  function _getCorpId(bytes8 ticker) internal view returns (uint256 corpId) {
+  function _getTribeId(bytes8 ticker) internal view returns (uint256 tribeId) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(ticker);
 
@@ -83,9 +83,9 @@ library CorporationsTickers {
   }
 
   /**
-   * @notice Get corpId.
+   * @notice Get tribeId.
    */
-  function get(bytes8 ticker) internal view returns (uint256 corpId) {
+  function get(bytes8 ticker) internal view returns (uint256 tribeId) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(ticker);
 
@@ -94,9 +94,9 @@ library CorporationsTickers {
   }
 
   /**
-   * @notice Get corpId.
+   * @notice Get tribeId.
    */
-  function _get(bytes8 ticker) internal view returns (uint256 corpId) {
+  function _get(bytes8 ticker) internal view returns (uint256 tribeId) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(ticker);
 
@@ -105,43 +105,43 @@ library CorporationsTickers {
   }
 
   /**
-   * @notice Set corpId.
+   * @notice Set tribeId.
    */
-  function setCorpId(bytes8 ticker, uint256 corpId) internal {
+  function setTribeId(bytes8 ticker, uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(ticker);
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((corpId)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((tribeId)), _fieldLayout);
   }
 
   /**
-   * @notice Set corpId.
+   * @notice Set tribeId.
    */
-  function _setCorpId(bytes8 ticker, uint256 corpId) internal {
+  function _setTribeId(bytes8 ticker, uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(ticker);
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((corpId)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((tribeId)), _fieldLayout);
   }
 
   /**
-   * @notice Set corpId.
+   * @notice Set tribeId.
    */
-  function set(bytes8 ticker, uint256 corpId) internal {
+  function set(bytes8 ticker, uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(ticker);
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((corpId)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((tribeId)), _fieldLayout);
   }
 
   /**
-   * @notice Set corpId.
+   * @notice Set tribeId.
    */
-  function _set(bytes8 ticker, uint256 corpId) internal {
+  function _set(bytes8 ticker, uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(ticker);
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((corpId)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((tribeId)), _fieldLayout);
   }
 
   /**
@@ -168,8 +168,8 @@ library CorporationsTickers {
    * @notice Tightly pack static (fixed length) data using this table's schema.
    * @return The static data, encoded into a sequence of bytes.
    */
-  function encodeStatic(uint256 corpId) internal pure returns (bytes memory) {
-    return abi.encodePacked(corpId);
+  function encodeStatic(uint256 tribeId) internal pure returns (bytes memory) {
+    return abi.encodePacked(tribeId);
   }
 
   /**
@@ -178,8 +178,8 @@ library CorporationsTickers {
    * @return The lengths of the dynamic fields (packed into a single bytes32 value).
    * @return The dynamic (variable length) data, encoded into a sequence of bytes.
    */
-  function encode(uint256 corpId) internal pure returns (bytes memory, EncodedLengths, bytes memory) {
-    bytes memory _staticData = encodeStatic(corpId);
+  function encode(uint256 tribeId) internal pure returns (bytes memory, EncodedLengths, bytes memory) {
+    bytes memory _staticData = encodeStatic(tribeId);
 
     EncodedLengths _encodedLengths;
     bytes memory _dynamicData;

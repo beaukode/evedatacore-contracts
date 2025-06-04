@@ -12,23 +12,23 @@ import { smartCharacterSystem } from "@eveworld/world-v2/src/namespaces/evefront
 import { Tenant, CharactersByAccount } from "@eveworld/world-v2/src/namespaces/evefrontier/codegen/index.sol";
 import { EntityRecordParams, EntityMetadataParams } from "@eveworld/world-v2/src/namespaces/evefrontier/systems/entity-record/types.sol";
 
-import { CorporationsTable, CorporationsTableData } from "../src/codegen/tables/CorporationsTable.sol";
-import { CorporationsTickers } from "../src/codegen/tables/CorporationsTickers.sol";
-import { CorporationsSystem } from "../src/systems/CorporationsSystem.sol";
-import { CorporationsSystemErrors } from "../src/systems/CorporationsSystemErrors.sol";
+import { TribesTable, TribesTableData } from "../src/codegen/tables/TribesTable.sol";
+import { TribesTickers } from "../src/codegen/tables/TribesTickers.sol";
+import { TribesSystem } from "../src/systems/TribesSystem.sol";
+import { TribesSystemErrors } from "../src/systems/TribesSystemErrors.sol";
 import { Utils } from "../src/systems/Utils.sol";
 
-contract CorporationsTest is MudTest {
+contract TribesTest is MudTest {
   using WorldResourceIdInstance for ResourceId;
   IWorldWithContext private world;
 
   uint256 private smartCharacterTypeId;
   bytes32 private tenantId;
 
-  uint256 private corp1 = 70000001;
-  uint256 private corp2 = 70000002;
-  uint256 private corp3 = 70000003;
-  uint256 private corp4 = 70000004;
+  uint256 private tribe1 = 70000001;
+  uint256 private tribe2 = 70000002;
+  uint256 private tribe3 = 70000003;
+  uint256 private tribe4 = 70000004;
 
   mapping(string => uint256) private characters;
 
@@ -59,9 +59,9 @@ contract CorporationsTest is MudTest {
 
     // Convert string to bytes14 using abi.encodePacked
     bytes14 namespace = bytes14(
-      abi.encodePacked(vm.envOr("CORPORATIONS_NAMESPACE", vm.envString("DEFAULT_NAMESPACE")))
+      abi.encodePacked(vm.envOr("TRIBES_NAMESPACE", vm.envString("DEFAULT_NAMESPACE")))
     );
-    systemId = Utils.corporationsSystemId(namespace);
+    systemId = Utils.tribesSystemId(namespace);
 
     characters["admin"] = _calculateObjectId(smartCharacterTypeId, 42, true);
     characters["player1"] = _calculateObjectId(smartCharacterTypeId, 71, true);
@@ -75,7 +75,7 @@ contract CorporationsTest is MudTest {
       smartCharacterSystem.createCharacter(
         characters["admin"],
         admin,
-        corp1,
+        tribe1,
         EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 42, volume: 0, tenantId: tenantId }),
         EntityMetadataParams({ name: "beauKode", dappURL: "https://evedataco.re", description: "EVE Datacore website" })
       );
@@ -84,7 +84,7 @@ contract CorporationsTest is MudTest {
       smartCharacterSystem.createCharacter(
         characters["player1"],
         player1,
-        corp1,
+        tribe1,
         EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 71, volume: 0, tenantId: tenantId }),
         EntityMetadataParams({ name: "player1", dappURL: "", description: "" })
       );
@@ -93,7 +93,7 @@ contract CorporationsTest is MudTest {
       smartCharacterSystem.createCharacter(
         characters["player2"],
         player2,
-        corp2,
+        tribe2,
         EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 72, volume: 0, tenantId: tenantId }),
         EntityMetadataParams({ name: "player2", dappURL: "", description: "" })
       );
@@ -102,7 +102,7 @@ contract CorporationsTest is MudTest {
       smartCharacterSystem.createCharacter(
         characters["player3"],
         player3,
-        corp3,
+        tribe3,
         EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 73, volume: 0, tenantId: tenantId }),
         EntityMetadataParams({ name: "player3", dappURL: "", description: "" })
       );
@@ -111,33 +111,33 @@ contract CorporationsTest is MudTest {
       smartCharacterSystem.createCharacter(
         characters["player4"],
         player4,
-        corp4,
+        tribe4,
         EntityRecordParams({ typeId: smartCharacterTypeId, itemId: 74, volume: 0, tenantId: tenantId }),
         EntityMetadataParams({ name: "player4", dappURL: "", description: "" })
       );
     }
 
-    // A corp claimed by the admin
-    CorporationsTable.set(
-      corp1,
+    // A tribe claimed by the admin
+    TribesTable.set(
+      tribe1,
       characters["admin"],
-      "CORP1",
+      "TRIB1",
       block.timestamp,
-      "Corp1 Name",
-      "https://corp1.com",
-      "Corp1 Description"
+      "Tribe1 Name",
+      "https://tribe1.com",
+      "Tribe1 Description"
     );
-    CorporationsTickers.set("CORP1", corp1);
+    TribesTickers.set("TRIB1", tribe1);
 
-    // A corp claimed by a player
-    CorporationsTable.set(corp2, characters["player2"], "CORP2", block.timestamp, "Corp2 Name", "", "");
-    CorporationsTickers.set("CORP2", corp2);
+    // A tribe claimed by a player
+    TribesTable.set(tribe2, characters["player2"], "TRIB2", block.timestamp, "Tribe2 Name", "", "");
+    TribesTickers.set("CORP2", tribe2);
 
-    // A corp where the CEO is not a member of the corp anymore
-    CorporationsTable.set(corp3, characters["player1"], "CORP3", block.timestamp, "Corp3 Name", "", "");
-    CorporationsTickers.set("CORP3", corp3);
+    // A tribe where the warlord is not a member of the tribe anymore
+    TribesTable.set(tribe3, characters["player1"], "TRIB3", block.timestamp, "Tribe3 Name", "", "");
+    TribesTickers.set("TRIB3", tribe3);
 
-    // Leave the corp4 unclaimed
+    // Leave the tribe4 unclaimed
     vm.stopBroadcast();
   }
 
@@ -156,159 +156,137 @@ contract CorporationsTest is MudTest {
     assertTrue(CharactersByAccount.get(admin) != 0);
   }
 
-  // Test if the corps are claimed
-  function testCorpsClaimedDbStatus() public {
-    assertTrue(CorporationsTable.getCEO(corp1) == characters["admin"]);
-    assertTrue(CorporationsTable.getCEO(corp2) == characters["player2"]);
-    assertTrue(CorporationsTable.getCEO(corp3) == characters["player1"]);
-    assertTrue(CorporationsTable.getCEO(corp4) == 0);
+  // Test if the tribes are claimed
+  function testTribesClaimedDbStatus() public {
+    assertTrue(TribesTable.getWarlord(tribe1) == characters["admin"]);
+    assertTrue(TribesTable.getWarlord(tribe2) == characters["player2"]);
+    assertTrue(TribesTable.getWarlord(tribe3) == characters["player1"]);
+    assertTrue(TribesTable.getWarlord(tribe4) == 0);
   }
 
-  function testRevertClaimNotMemberOfCorp() public {
+  function testRevertClaimNotMemberOfTribe() public {
     vm.prank(admin);
     vm.expectRevert(
-      abi.encodeWithSelector(
-        CorporationsSystemErrors.CorporationsSystem_NotMemberOfCorp.selector,
-        corp2,
-        characters["admin"]
-      )
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_NotMemberOfTribe.selector, tribe2, characters["admin"])
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp2, "TEST", "Test Corp")));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe2, "TEST", "Test Tribe")));
   }
 
-  function testRevertClaimCorpAlreadyClaimed() public {
+  function testRevertClaimTribeAlreadyClaimed() public {
     vm.prank(admin);
-    vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_CorpAlreadyClaimed.selector, corp1)
-    );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp1, "TEST", "Test Corp")));
+    vm.expectRevert(abi.encodeWithSelector(TribesSystemErrors.TribesSystem_TribeAlreadyClaimed.selector, tribe1));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe1, "TEST", "Test Tribe")));
   }
 
-  function testClaimUnclaimedCorp() public {
+  function testClaimUnclaimedTribe() public {
     vm.prank(player4);
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "CORP4", "Corp4 Name")));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe4, "TRIB4", "Tribe4 Name")));
 
-    assertTrue(CorporationsTable.getCEO(corp4) == characters["player4"]);
-    assertTrue(CorporationsTable.getTicker(corp4) == "CORP4");
-    assertTrue(
-      keccak256(abi.encodePacked(CorporationsTable.getName(corp4))) == keccak256(abi.encodePacked("Corp4 Name"))
-    );
-    assertTrue(CorporationsTable.getClaimedAt(corp4) != 0);
-    assertTrue(keccak256(abi.encodePacked(CorporationsTable.getDescription(corp4))) == keccak256(abi.encodePacked("")));
-    assertTrue(keccak256(abi.encodePacked(CorporationsTable.getHomepage(corp4))) == keccak256(abi.encodePacked("")));
-    assertTrue(CorporationsTickers.get("CORP4") == corp4);
+    assertTrue(TribesTable.getWarlord(tribe4) == characters["player4"]);
+    assertTrue(TribesTable.getTicker(tribe4) == "TRIB4");
+    assertTrue(keccak256(abi.encodePacked(TribesTable.getName(tribe4))) == keccak256(abi.encodePacked("Tribe4 Name")));
+    assertTrue(TribesTable.getClaimedAt(tribe4) != 0);
+    assertTrue(keccak256(abi.encodePacked(TribesTable.getDescription(tribe4))) == keccak256(abi.encodePacked("")));
+    assertTrue(keccak256(abi.encodePacked(TribesTable.getHomepage(tribe4))) == keccak256(abi.encodePacked("")));
+    assertTrue(TribesTickers.get("TRIB4") == tribe4);
   }
 
   function testRevertClaimTickerAlreadyTaken() public {
-    // Try to claim another corp with a ticker that is already taken
+    // Try to claim another tribe with a ticker that is already taken
     vm.prank(player4);
     vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_TickerAlreadyTaken.selector, bytes8("CORP3"))
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_TickerAlreadyTaken.selector, bytes8("TRIB3"))
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "CORP3", "Corp4 Name")));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe4, "TRIB3", "Tribe4 Name")));
   }
 
-  function testClaimCeoAsLeftCorp() public {
+  function testClaimWarlordAsLeftTribe() public {
     vm.prank(player3);
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp3, "CORP3", "Corp3 Name")));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe3, "TRIB3", "Tribe3 Name")));
 
-    assertTrue(CorporationsTable.getCEO(corp3) == characters["player3"]);
-    assertTrue(CorporationsTable.getTicker(corp3) == "CORP3");
-    assertTrue(
-      keccak256(abi.encodePacked(CorporationsTable.getName(corp3))) == keccak256(abi.encodePacked("Corp3 Name"))
-    );
-    assertTrue(CorporationsTable.getClaimedAt(corp3) != 0);
-    assertTrue(keccak256(abi.encodePacked(CorporationsTable.getDescription(corp3))) == keccak256(abi.encodePacked("")));
-    assertTrue(keccak256(abi.encodePacked(CorporationsTable.getHomepage(corp3))) == keccak256(abi.encodePacked("")));
+    assertTrue(TribesTable.getWarlord(tribe3) == characters["player3"]);
+    assertTrue(TribesTable.getTicker(tribe3) == "TRIB3");
+    assertTrue(keccak256(abi.encodePacked(TribesTable.getName(tribe3))) == keccak256(abi.encodePacked("Tribe3 Name")));
+    assertTrue(TribesTable.getClaimedAt(tribe3) != 0);
+    assertTrue(keccak256(abi.encodePacked(TribesTable.getDescription(tribe3))) == keccak256(abi.encodePacked("")));
+    assertTrue(keccak256(abi.encodePacked(TribesTable.getHomepage(tribe3))) == keccak256(abi.encodePacked("")));
   }
 
-  function testRevertTransferNotMemberOfCorp() public {
+  function testRevertTransferNotMemberOfTribe() public {
     vm.prank(admin);
     vm.expectRevert(
-      abi.encodeWithSelector(
-        CorporationsSystemErrors.CorporationsSystem_NotMemberOfCorp.selector,
-        corp1,
-        characters["player4"]
-      )
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_NotMemberOfTribe.selector, tribe1, characters["player4"])
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.transfer, (corp1, characters["player4"])));
+    world.call(systemId, abi.encodeCall(TribesSystem.transfer, (tribe1, characters["player4"])));
   }
 
-  function testRevertTransferNotCEO() public {
+  function testRevertTransferNotWarlord() public {
     vm.prank(player1);
     vm.expectRevert(
-      abi.encodeWithSelector(
-        CorporationsSystemErrors.CorporationsSystem_Unauthorized.selector,
-        corp1,
-        characters["player1"]
-      )
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_Unauthorized.selector, tribe1, characters["player1"])
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.transfer, (corp1, characters["admin"])));
+    world.call(systemId, abi.encodeCall(TribesSystem.transfer, (tribe1, characters["admin"])));
   }
 
-  function testRevertTransferIsAlreadyCeo() public {
+  function testRevertTransferIsAlreadyWarlord() public {
     vm.prank(admin);
     vm.expectRevert(
-      abi.encodeWithSelector(
-        CorporationsSystemErrors.CorporationsSystem_IsAlreadyCeo.selector,
-        corp1,
-        characters["admin"]
-      )
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_IsAlreadyWarlord.selector, tribe1, characters["admin"])
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.transfer, (corp1, characters["admin"])));
+    world.call(systemId, abi.encodeCall(TribesSystem.transfer, (tribe1, characters["admin"])));
   }
 
   function testTransfer() public {
-    assertTrue(CorporationsTable.getCEO(corp1) == characters["admin"]);
+    assertTrue(TribesTable.getWarlord(tribe1) == characters["admin"]);
 
     vm.prank(admin);
-    world.call(systemId, abi.encodeCall(CorporationsSystem.transfer, (corp1, characters["player1"])));
+    world.call(systemId, abi.encodeCall(TribesSystem.transfer, (tribe1, characters["player1"])));
 
-    assertTrue(CorporationsTable.getCEO(corp1) == characters["player1"]);
+    assertTrue(TribesTable.getWarlord(tribe1) == characters["player1"]);
   }
 
   function testRevertClaimEmptyName() public {
     vm.prank(player4);
     vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector, "", 1, 50)
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_InvalidStringLength.selector, "", 1, 50)
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "CORP4", "")));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe4, "TRIB4", "")));
   }
 
   function testRevertClaimTooLongName() public {
     vm.prank(player4);
-    string memory longName = "This corporation name is way too long and should not be accepted";
+    string memory longName = "This tribe name is way too long and should not be accepted";
     vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector, longName, 1, 50)
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_InvalidStringLength.selector, longName, 1, 50)
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "CORP4", longName)));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe4, "TRIB4", longName)));
   }
 
   function testRevertClaimInvalidTickerFormat() public {
     vm.startBroadcast(player4);
 
     vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8(" "))
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_InvalidTickerFormat.selector, bytes8(" "))
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, " ", "Corp4 Name")));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe4, " ", "Tribe4 Name")));
 
     vm.expectRevert(
       abi.encodeWithSelector(
-        CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector,
+        TribesSystemErrors.TribesSystem_InvalidTickerFormat.selector,
         bytes8(unicode"è")
       )
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, unicode"è", "Corp4 Name")));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe4, unicode"è", "Tribe4 Name")));
 
     vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8(""))
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_InvalidTickerFormat.selector, bytes8(""))
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "", "Corp4 Name")));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe4, "", "Tribe4 Name")));
 
     vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidTickerFormat.selector, bytes8("ABCDEF"))
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_InvalidTickerFormat.selector, bytes8("ABCDEF"))
     );
-    world.call(systemId, abi.encodeCall(CorporationsSystem.claim, (corp4, "ABCDEF", "Corp4 Name")));
+    world.call(systemId, abi.encodeCall(TribesSystem.claim, (tribe4, "ABCDEF", "Tribe4 Name")));
 
     vm.stopBroadcast();
   }
@@ -317,55 +295,55 @@ contract CorporationsTest is MudTest {
     vm.prank(admin);
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", "New description", "https://newcorp.com"))
+      abi.encodeCall(TribesSystem.setMetadata, (tribe1, "New Tribe Name", "New description", "https://newtribe.com"))
     );
 
     assertTrue(
-      keccak256(abi.encodePacked(CorporationsTable.getName(corp1))) == keccak256(abi.encodePacked("New Corp Name"))
+      keccak256(abi.encodePacked(TribesTable.getName(tribe1))) == keccak256(abi.encodePacked("New Tribe Name"))
     );
     assertTrue(
-      keccak256(abi.encodePacked(CorporationsTable.getDescription(corp1))) ==
+      keccak256(abi.encodePacked(TribesTable.getDescription(tribe1))) ==
         keccak256(abi.encodePacked("New description"))
     );
     assertTrue(
-      keccak256(abi.encodePacked(CorporationsTable.getHomepage(corp1))) ==
-        keccak256(abi.encodePacked("https://newcorp.com"))
+      keccak256(abi.encodePacked(TribesTable.getHomepage(tribe1))) ==
+        keccak256(abi.encodePacked("https://newtribe.com"))
     );
   }
 
-  function testRevertSetMetadataNotCEO() public {
+  function testRevertSetMetadataNotWarlord() public {
     vm.prank(player1);
     vm.expectRevert(
       abi.encodeWithSelector(
-        CorporationsSystemErrors.CorporationsSystem_Unauthorized.selector,
-        corp1,
+        TribesSystemErrors.TribesSystem_Unauthorized.selector,
+        tribe1,
         characters["player1"]
       )
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", "New description", "https://newcorp.com"))
+      abi.encodeCall(TribesSystem.setMetadata, (tribe1, "New Tribe Name", "New description", "https://newtribe.com"))
     );
   }
 
   function testRevertSetMetadataInvalidStringLength() public {
     vm.startBroadcast(admin);
 
-    string memory longName = "This corporation name is way too long and should not be accepted";
+    string memory longName = "This tribe name is way too long and should not be accepted";
     vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector, longName, 1, 50)
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_InvalidStringLength.selector, longName, 1, 50)
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, longName, "New description", "https://newcorp.com"))
+      abi.encodeCall(TribesSystem.setMetadata, (tribe1, longName, "New description", "https://newtribe.com"))
     );
 
     vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector, "", 1, 50)
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_InvalidStringLength.selector, "", 1, 50)
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "", "New description", "https://newcorp.com"))
+      abi.encodeCall(TribesSystem.setMetadata, (tribe1, "", "New description", "https://newtribe.com"))
     );
 
     string
@@ -380,7 +358,7 @@ contract CorporationsTest is MudTest {
       "L";
     vm.expectRevert(
       abi.encodeWithSelector(
-        CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector,
+        TribesSystemErrors.TribesSystem_InvalidStringLength.selector,
         longDescription,
         0,
         4000
@@ -388,68 +366,68 @@ contract CorporationsTest is MudTest {
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", longDescription, "https://newcorp.com"))
+      abi.encodeCall(TribesSystem.setMetadata, (tribe1, "New Tribe Name", longDescription, "https://newtribe.com"))
     );
 
     string
       memory longUrl = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae augue laoreet, ultrices ante non, ultrices metus. Nullam lobortis, sem imperdiet tempor faucibus, mauris nisl cursus justo, quis eleifend neque nulla eu urna. Praesent tincidunt, orci dolor.";
     vm.expectRevert(
-      abi.encodeWithSelector(CorporationsSystemErrors.CorporationsSystem_InvalidStringLength.selector, longUrl, 0, 255)
+      abi.encodeWithSelector(TribesSystemErrors.TribesSystem_InvalidStringLength.selector, longUrl, 0, 255)
     );
     world.call(
       systemId,
-      abi.encodeCall(CorporationsSystem.setMetadata, (corp1, "New Corp Name", "New description", longUrl))
+      abi.encodeCall(TribesSystem.setMetadata, (tribe1, "New Tribe Name", "New description", longUrl))
     );
 
     vm.stopBroadcast();
   }
 
   function testIsClaimValid() public {
-    // Corp1 is claimed and CEO is member of corp - should be valid
-    bool isValid = abi.decode(world.call(systemId, abi.encodeCall(CorporationsSystem.isClaimValid, (corp1))), (bool));
+    // Tribe1 is claimed and warlord is member of tribe - should be valid
+    bool isValid = abi.decode(world.call(systemId, abi.encodeCall(TribesSystem.isClaimValid, (tribe1))), (bool));
     assertTrue(isValid);
 
-    // Corp2 is claimed and CEO is member of corp - should be valid
-    (isValid) = abi.decode(world.call(systemId, abi.encodeCall(CorporationsSystem.isClaimValid, (corp2))), (bool));
+    // Tribe2 is claimed and warlord is member of tribe - should be valid
+    (isValid) = abi.decode(world.call(systemId, abi.encodeCall(TribesSystem.isClaimValid, (tribe2))), (bool));
     assertTrue(isValid);
 
-    // Corp3 is claimed but CEO is not member of corp - should be invalid
-    (isValid) = abi.decode(world.call(systemId, abi.encodeCall(CorporationsSystem.isClaimValid, (corp3))), (bool));
+    // Tribe3 is claimed but warlord is not member of tribe - should be invalid
+    (isValid) = abi.decode(world.call(systemId, abi.encodeCall(TribesSystem.isClaimValid, (tribe3))), (bool));
     assertFalse(isValid);
 
-    // Corp4 is unclaimed - should be invalid
-    (isValid) = abi.decode(world.call(systemId, abi.encodeCall(CorporationsSystem.isClaimValid, (corp4))), (bool));
+    // Tribe4 is unclaimed - should be invalid
+    (isValid) = abi.decode(world.call(systemId, abi.encodeCall(TribesSystem.isClaimValid, (tribe4))), (bool));
     assertFalse(isValid);
   }
 
   function testGetMetadata() public {
-    CorporationsTableData memory data1 = abi.decode(
-      world.call(systemId, abi.encodeCall(CorporationsSystem.getMetadata, (corp1))),
-      (CorporationsTableData)
+    TribesTableData memory data1 = abi.decode(
+      world.call(systemId, abi.encodeCall(TribesSystem.getMetadata, (tribe1))),
+      (TribesTableData)
     );
-    assertEq(data1.CEO, characters["admin"]);
-    assertEq(data1.ticker, "CORP1");
+    assertEq(data1.warlord, characters["admin"]);
+    assertEq(data1.ticker, "TRIB1");
     assertEq(data1.claimedAt, block.timestamp);
-    assertEq(data1.name, "Corp1 Name");
-    assertEq(data1.homepage, "https://corp1.com");
-    assertEq(data1.description, "Corp1 Description");
+    assertEq(data1.name, "Tribe1 Name");
+    assertEq(data1.homepage, "https://tribe1.com");
+    assertEq(data1.description, "Tribe1 Description");
 
-    CorporationsTableData memory data2 = abi.decode(
-      world.call(systemId, abi.encodeCall(CorporationsSystem.getMetadata, (corp2))),
-      (CorporationsTableData)
+    TribesTableData memory data2 = abi.decode(
+      world.call(systemId, abi.encodeCall(TribesSystem.getMetadata, (tribe2))),
+      (TribesTableData)
     );
-    assertEq(data2.CEO, characters["player2"]);
-    assertEq(data2.ticker, "CORP2");
+    assertEq(data2.warlord, characters["player2"]);
+    assertEq(data2.ticker, "TRIB2");
     assertEq(data2.claimedAt, block.timestamp);
-    assertEq(data2.name, "Corp2 Name");
+    assertEq(data2.name, "Tribe2 Name");
     assertEq(data2.description, "");
     assertEq(data2.homepage, "");
 
-    CorporationsTableData memory data9 = abi.decode(
-      world.call(systemId, abi.encodeCall(CorporationsSystem.getMetadata, (9))),
-      (CorporationsTableData)
+    TribesTableData memory data9 = abi.decode(
+      world.call(systemId, abi.encodeCall(TribesSystem.getMetadata, (9))),
+      (TribesTableData)
     );
-    assertEq(data9.CEO, 0);
+    assertEq(data9.warlord, 0);
     assertEq(data9.ticker, "");
     assertEq(data9.claimedAt, 0);
     assertEq(data9.name, "");

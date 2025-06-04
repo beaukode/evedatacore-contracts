@@ -16,8 +16,8 @@ import { Schema } from "@latticexyz/store/src/Schema.sol";
 import { EncodedLengths, EncodedLengthsLib } from "@latticexyz/store/src/EncodedLengths.sol";
 import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
 
-struct CorporationsTableData {
-  uint256 CEO;
+struct TribesTableData {
+  uint256 warlord;
   bytes8 ticker;
   uint256 claimedAt;
   string name;
@@ -25,9 +25,9 @@ struct CorporationsTableData {
   string description;
 }
 
-library CorporationsTable {
-  // Hex below is the result of `WorldResourceIdLib.encode({ namespace: "beauKode_dev", name: "CorporationsTabl", typeId: RESOURCE_TABLE });`
-  ResourceId constant _tableId = ResourceId.wrap(0x7462626561754b6f64655f6465760000436f72706f726174696f6e735461626c);
+library TribesTable {
+  // Hex below is the result of `WorldResourceIdLib.encode({ namespace: "beauKode_dev", name: "TribesTable", typeId: RESOURCE_TABLE });`
+  ResourceId constant _tableId = ResourceId.wrap(0x7462626561754b6f64655f64657600005472696265735461626c650000000000);
 
   FieldLayout constant _fieldLayout =
     FieldLayout.wrap(0x0048030320082000000000000000000000000000000000000000000000000000);
@@ -43,7 +43,7 @@ library CorporationsTable {
    */
   function getKeyNames() internal pure returns (string[] memory keyNames) {
     keyNames = new string[](1);
-    keyNames[0] = "corpId";
+    keyNames[0] = "tribeId";
   }
 
   /**
@@ -52,7 +52,7 @@ library CorporationsTable {
    */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
     fieldNames = new string[](6);
-    fieldNames[0] = "CEO";
+    fieldNames[0] = "warlord";
     fieldNames[1] = "ticker";
     fieldNames[2] = "claimedAt";
     fieldNames[3] = "name";
@@ -75,53 +75,53 @@ library CorporationsTable {
   }
 
   /**
-   * @notice Get CEO.
+   * @notice Get warlord.
    */
-  function getCEO(uint256 corpId) internal view returns (uint256 CEO) {
+  function getWarlord(uint256 tribeId) internal view returns (uint256 warlord) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
     return (uint256(bytes32(_blob)));
   }
 
   /**
-   * @notice Get CEO.
+   * @notice Get warlord.
    */
-  function _getCEO(uint256 corpId) internal view returns (uint256 CEO) {
+  function _getWarlord(uint256 tribeId) internal view returns (uint256 warlord) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
     return (uint256(bytes32(_blob)));
   }
 
   /**
-   * @notice Set CEO.
+   * @notice Set warlord.
    */
-  function setCEO(uint256 corpId, uint256 CEO) internal {
+  function setWarlord(uint256 tribeId, uint256 warlord) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((CEO)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((warlord)), _fieldLayout);
   }
 
   /**
-   * @notice Set CEO.
+   * @notice Set warlord.
    */
-  function _setCEO(uint256 corpId, uint256 CEO) internal {
+  function _setWarlord(uint256 tribeId, uint256 warlord) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((CEO)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((warlord)), _fieldLayout);
   }
 
   /**
    * @notice Get ticker.
    */
-  function getTicker(uint256 corpId) internal view returns (bytes8 ticker) {
+  function getTicker(uint256 tribeId) internal view returns (bytes8 ticker) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
     return (bytes8(_blob));
@@ -130,9 +130,9 @@ library CorporationsTable {
   /**
    * @notice Get ticker.
    */
-  function _getTicker(uint256 corpId) internal view returns (bytes8 ticker) {
+  function _getTicker(uint256 tribeId) internal view returns (bytes8 ticker) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
     return (bytes8(_blob));
@@ -141,9 +141,9 @@ library CorporationsTable {
   /**
    * @notice Set ticker.
    */
-  function setTicker(uint256 corpId, bytes8 ticker) internal {
+  function setTicker(uint256 tribeId, bytes8 ticker) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((ticker)), _fieldLayout);
   }
@@ -151,9 +151,9 @@ library CorporationsTable {
   /**
    * @notice Set ticker.
    */
-  function _setTicker(uint256 corpId, bytes8 ticker) internal {
+  function _setTicker(uint256 tribeId, bytes8 ticker) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((ticker)), _fieldLayout);
   }
@@ -161,9 +161,9 @@ library CorporationsTable {
   /**
    * @notice Get claimedAt.
    */
-  function getClaimedAt(uint256 corpId) internal view returns (uint256 claimedAt) {
+  function getClaimedAt(uint256 tribeId) internal view returns (uint256 claimedAt) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
     return (uint256(bytes32(_blob)));
@@ -172,9 +172,9 @@ library CorporationsTable {
   /**
    * @notice Get claimedAt.
    */
-  function _getClaimedAt(uint256 corpId) internal view returns (uint256 claimedAt) {
+  function _getClaimedAt(uint256 tribeId) internal view returns (uint256 claimedAt) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
     return (uint256(bytes32(_blob)));
@@ -183,9 +183,9 @@ library CorporationsTable {
   /**
    * @notice Set claimedAt.
    */
-  function setClaimedAt(uint256 corpId, uint256 claimedAt) internal {
+  function setClaimedAt(uint256 tribeId, uint256 claimedAt) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((claimedAt)), _fieldLayout);
   }
@@ -193,9 +193,9 @@ library CorporationsTable {
   /**
    * @notice Set claimedAt.
    */
-  function _setClaimedAt(uint256 corpId, uint256 claimedAt) internal {
+  function _setClaimedAt(uint256 tribeId, uint256 claimedAt) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((claimedAt)), _fieldLayout);
   }
@@ -203,9 +203,9 @@ library CorporationsTable {
   /**
    * @notice Get name.
    */
-  function getName(uint256 corpId) internal view returns (string memory name) {
+  function getName(uint256 tribeId) internal view returns (string memory name) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes memory _blob = StoreSwitch.getDynamicField(_tableId, _keyTuple, 0);
     return (string(_blob));
@@ -214,9 +214,9 @@ library CorporationsTable {
   /**
    * @notice Get name.
    */
-  function _getName(uint256 corpId) internal view returns (string memory name) {
+  function _getName(uint256 tribeId) internal view returns (string memory name) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes memory _blob = StoreCore.getDynamicField(_tableId, _keyTuple, 0);
     return (string(_blob));
@@ -225,9 +225,9 @@ library CorporationsTable {
   /**
    * @notice Set name.
    */
-  function setName(uint256 corpId, string memory name) internal {
+  function setName(uint256 tribeId, string memory name) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
   }
@@ -235,9 +235,9 @@ library CorporationsTable {
   /**
    * @notice Set name.
    */
-  function _setName(uint256 corpId, string memory name) internal {
+  function _setName(uint256 tribeId, string memory name) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.setDynamicField(_tableId, _keyTuple, 0, bytes((name)));
   }
@@ -245,9 +245,9 @@ library CorporationsTable {
   /**
    * @notice Get the length of name.
    */
-  function lengthName(uint256 corpId) internal view returns (uint256) {
+  function lengthName(uint256 tribeId) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     uint256 _byteLength = StoreSwitch.getDynamicFieldLength(_tableId, _keyTuple, 0);
     unchecked {
@@ -258,9 +258,9 @@ library CorporationsTable {
   /**
    * @notice Get the length of name.
    */
-  function _lengthName(uint256 corpId) internal view returns (uint256) {
+  function _lengthName(uint256 tribeId) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     uint256 _byteLength = StoreCore.getDynamicFieldLength(_tableId, _keyTuple, 0);
     unchecked {
@@ -272,9 +272,9 @@ library CorporationsTable {
    * @notice Get an item of name.
    * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
-  function getItemName(uint256 corpId, uint256 _index) internal view returns (string memory) {
+  function getItemName(uint256 tribeId, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _blob = StoreSwitch.getDynamicFieldSlice(_tableId, _keyTuple, 0, _index * 1, (_index + 1) * 1);
@@ -286,9 +286,9 @@ library CorporationsTable {
    * @notice Get an item of name.
    * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
-  function _getItemName(uint256 corpId, uint256 _index) internal view returns (string memory) {
+  function _getItemName(uint256 tribeId, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _blob = StoreCore.getDynamicFieldSlice(_tableId, _keyTuple, 0, _index * 1, (_index + 1) * 1);
@@ -299,9 +299,9 @@ library CorporationsTable {
   /**
    * @notice Push a slice to name.
    */
-  function pushName(uint256 corpId, string memory _slice) internal {
+  function pushName(uint256 tribeId, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
   }
@@ -309,9 +309,9 @@ library CorporationsTable {
   /**
    * @notice Push a slice to name.
    */
-  function _pushName(uint256 corpId, string memory _slice) internal {
+  function _pushName(uint256 tribeId, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
   }
@@ -319,9 +319,9 @@ library CorporationsTable {
   /**
    * @notice Pop a slice from name.
    */
-  function popName(uint256 corpId) internal {
+  function popName(uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.popFromDynamicField(_tableId, _keyTuple, 0, 1);
   }
@@ -329,9 +329,9 @@ library CorporationsTable {
   /**
    * @notice Pop a slice from name.
    */
-  function _popName(uint256 corpId) internal {
+  function _popName(uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.popFromDynamicField(_tableId, _keyTuple, 0, 1);
   }
@@ -339,9 +339,9 @@ library CorporationsTable {
   /**
    * @notice Update a slice of name at `_index`.
    */
-  function updateName(uint256 corpId, uint256 _index, string memory _slice) internal {
+  function updateName(uint256 tribeId, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _encoded = bytes((_slice));
@@ -352,9 +352,9 @@ library CorporationsTable {
   /**
    * @notice Update a slice of name at `_index`.
    */
-  function _updateName(uint256 corpId, uint256 _index, string memory _slice) internal {
+  function _updateName(uint256 tribeId, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _encoded = bytes((_slice));
@@ -365,9 +365,9 @@ library CorporationsTable {
   /**
    * @notice Get homepage.
    */
-  function getHomepage(uint256 corpId) internal view returns (string memory homepage) {
+  function getHomepage(uint256 tribeId) internal view returns (string memory homepage) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes memory _blob = StoreSwitch.getDynamicField(_tableId, _keyTuple, 1);
     return (string(_blob));
@@ -376,9 +376,9 @@ library CorporationsTable {
   /**
    * @notice Get homepage.
    */
-  function _getHomepage(uint256 corpId) internal view returns (string memory homepage) {
+  function _getHomepage(uint256 tribeId) internal view returns (string memory homepage) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes memory _blob = StoreCore.getDynamicField(_tableId, _keyTuple, 1);
     return (string(_blob));
@@ -387,9 +387,9 @@ library CorporationsTable {
   /**
    * @notice Set homepage.
    */
-  function setHomepage(uint256 corpId, string memory homepage) internal {
+  function setHomepage(uint256 tribeId, string memory homepage) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.setDynamicField(_tableId, _keyTuple, 1, bytes((homepage)));
   }
@@ -397,9 +397,9 @@ library CorporationsTable {
   /**
    * @notice Set homepage.
    */
-  function _setHomepage(uint256 corpId, string memory homepage) internal {
+  function _setHomepage(uint256 tribeId, string memory homepage) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.setDynamicField(_tableId, _keyTuple, 1, bytes((homepage)));
   }
@@ -407,9 +407,9 @@ library CorporationsTable {
   /**
    * @notice Get the length of homepage.
    */
-  function lengthHomepage(uint256 corpId) internal view returns (uint256) {
+  function lengthHomepage(uint256 tribeId) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     uint256 _byteLength = StoreSwitch.getDynamicFieldLength(_tableId, _keyTuple, 1);
     unchecked {
@@ -420,9 +420,9 @@ library CorporationsTable {
   /**
    * @notice Get the length of homepage.
    */
-  function _lengthHomepage(uint256 corpId) internal view returns (uint256) {
+  function _lengthHomepage(uint256 tribeId) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     uint256 _byteLength = StoreCore.getDynamicFieldLength(_tableId, _keyTuple, 1);
     unchecked {
@@ -434,9 +434,9 @@ library CorporationsTable {
    * @notice Get an item of homepage.
    * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
-  function getItemHomepage(uint256 corpId, uint256 _index) internal view returns (string memory) {
+  function getItemHomepage(uint256 tribeId, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _blob = StoreSwitch.getDynamicFieldSlice(_tableId, _keyTuple, 1, _index * 1, (_index + 1) * 1);
@@ -448,9 +448,9 @@ library CorporationsTable {
    * @notice Get an item of homepage.
    * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
-  function _getItemHomepage(uint256 corpId, uint256 _index) internal view returns (string memory) {
+  function _getItemHomepage(uint256 tribeId, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _blob = StoreCore.getDynamicFieldSlice(_tableId, _keyTuple, 1, _index * 1, (_index + 1) * 1);
@@ -461,9 +461,9 @@ library CorporationsTable {
   /**
    * @notice Push a slice to homepage.
    */
-  function pushHomepage(uint256 corpId, string memory _slice) internal {
+  function pushHomepage(uint256 tribeId, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.pushToDynamicField(_tableId, _keyTuple, 1, bytes((_slice)));
   }
@@ -471,9 +471,9 @@ library CorporationsTable {
   /**
    * @notice Push a slice to homepage.
    */
-  function _pushHomepage(uint256 corpId, string memory _slice) internal {
+  function _pushHomepage(uint256 tribeId, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.pushToDynamicField(_tableId, _keyTuple, 1, bytes((_slice)));
   }
@@ -481,9 +481,9 @@ library CorporationsTable {
   /**
    * @notice Pop a slice from homepage.
    */
-  function popHomepage(uint256 corpId) internal {
+  function popHomepage(uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.popFromDynamicField(_tableId, _keyTuple, 1, 1);
   }
@@ -491,9 +491,9 @@ library CorporationsTable {
   /**
    * @notice Pop a slice from homepage.
    */
-  function _popHomepage(uint256 corpId) internal {
+  function _popHomepage(uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.popFromDynamicField(_tableId, _keyTuple, 1, 1);
   }
@@ -501,9 +501,9 @@ library CorporationsTable {
   /**
    * @notice Update a slice of homepage at `_index`.
    */
-  function updateHomepage(uint256 corpId, uint256 _index, string memory _slice) internal {
+  function updateHomepage(uint256 tribeId, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _encoded = bytes((_slice));
@@ -514,9 +514,9 @@ library CorporationsTable {
   /**
    * @notice Update a slice of homepage at `_index`.
    */
-  function _updateHomepage(uint256 corpId, uint256 _index, string memory _slice) internal {
+  function _updateHomepage(uint256 tribeId, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _encoded = bytes((_slice));
@@ -527,9 +527,9 @@ library CorporationsTable {
   /**
    * @notice Get description.
    */
-  function getDescription(uint256 corpId) internal view returns (string memory description) {
+  function getDescription(uint256 tribeId) internal view returns (string memory description) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes memory _blob = StoreSwitch.getDynamicField(_tableId, _keyTuple, 2);
     return (string(_blob));
@@ -538,9 +538,9 @@ library CorporationsTable {
   /**
    * @notice Get description.
    */
-  function _getDescription(uint256 corpId) internal view returns (string memory description) {
+  function _getDescription(uint256 tribeId) internal view returns (string memory description) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     bytes memory _blob = StoreCore.getDynamicField(_tableId, _keyTuple, 2);
     return (string(_blob));
@@ -549,9 +549,9 @@ library CorporationsTable {
   /**
    * @notice Set description.
    */
-  function setDescription(uint256 corpId, string memory description) internal {
+  function setDescription(uint256 tribeId, string memory description) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.setDynamicField(_tableId, _keyTuple, 2, bytes((description)));
   }
@@ -559,9 +559,9 @@ library CorporationsTable {
   /**
    * @notice Set description.
    */
-  function _setDescription(uint256 corpId, string memory description) internal {
+  function _setDescription(uint256 tribeId, string memory description) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.setDynamicField(_tableId, _keyTuple, 2, bytes((description)));
   }
@@ -569,9 +569,9 @@ library CorporationsTable {
   /**
    * @notice Get the length of description.
    */
-  function lengthDescription(uint256 corpId) internal view returns (uint256) {
+  function lengthDescription(uint256 tribeId) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     uint256 _byteLength = StoreSwitch.getDynamicFieldLength(_tableId, _keyTuple, 2);
     unchecked {
@@ -582,9 +582,9 @@ library CorporationsTable {
   /**
    * @notice Get the length of description.
    */
-  function _lengthDescription(uint256 corpId) internal view returns (uint256) {
+  function _lengthDescription(uint256 tribeId) internal view returns (uint256) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     uint256 _byteLength = StoreCore.getDynamicFieldLength(_tableId, _keyTuple, 2);
     unchecked {
@@ -596,9 +596,9 @@ library CorporationsTable {
    * @notice Get an item of description.
    * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
-  function getItemDescription(uint256 corpId, uint256 _index) internal view returns (string memory) {
+  function getItemDescription(uint256 tribeId, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _blob = StoreSwitch.getDynamicFieldSlice(_tableId, _keyTuple, 2, _index * 1, (_index + 1) * 1);
@@ -610,9 +610,9 @@ library CorporationsTable {
    * @notice Get an item of description.
    * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
    */
-  function _getItemDescription(uint256 corpId, uint256 _index) internal view returns (string memory) {
+  function _getItemDescription(uint256 tribeId, uint256 _index) internal view returns (string memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _blob = StoreCore.getDynamicFieldSlice(_tableId, _keyTuple, 2, _index * 1, (_index + 1) * 1);
@@ -623,9 +623,9 @@ library CorporationsTable {
   /**
    * @notice Push a slice to description.
    */
-  function pushDescription(uint256 corpId, string memory _slice) internal {
+  function pushDescription(uint256 tribeId, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.pushToDynamicField(_tableId, _keyTuple, 2, bytes((_slice)));
   }
@@ -633,9 +633,9 @@ library CorporationsTable {
   /**
    * @notice Push a slice to description.
    */
-  function _pushDescription(uint256 corpId, string memory _slice) internal {
+  function _pushDescription(uint256 tribeId, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.pushToDynamicField(_tableId, _keyTuple, 2, bytes((_slice)));
   }
@@ -643,9 +643,9 @@ library CorporationsTable {
   /**
    * @notice Pop a slice from description.
    */
-  function popDescription(uint256 corpId) internal {
+  function popDescription(uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.popFromDynamicField(_tableId, _keyTuple, 2, 1);
   }
@@ -653,9 +653,9 @@ library CorporationsTable {
   /**
    * @notice Pop a slice from description.
    */
-  function _popDescription(uint256 corpId) internal {
+  function _popDescription(uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.popFromDynamicField(_tableId, _keyTuple, 2, 1);
   }
@@ -663,9 +663,9 @@ library CorporationsTable {
   /**
    * @notice Update a slice of description at `_index`.
    */
-  function updateDescription(uint256 corpId, uint256 _index, string memory _slice) internal {
+  function updateDescription(uint256 tribeId, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _encoded = bytes((_slice));
@@ -676,9 +676,9 @@ library CorporationsTable {
   /**
    * @notice Update a slice of description at `_index`.
    */
-  function _updateDescription(uint256 corpId, uint256 _index, string memory _slice) internal {
+  function _updateDescription(uint256 tribeId, uint256 _index, string memory _slice) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     unchecked {
       bytes memory _encoded = bytes((_slice));
@@ -689,9 +689,9 @@ library CorporationsTable {
   /**
    * @notice Get the full data.
    */
-  function get(uint256 corpId) internal view returns (CorporationsTableData memory _table) {
+  function get(uint256 tribeId) internal view returns (TribesTableData memory _table) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     (bytes memory _staticData, EncodedLengths _encodedLengths, bytes memory _dynamicData) = StoreSwitch.getRecord(
       _tableId,
@@ -704,9 +704,9 @@ library CorporationsTable {
   /**
    * @notice Get the full data.
    */
-  function _get(uint256 corpId) internal view returns (CorporationsTableData memory _table) {
+  function _get(uint256 tribeId) internal view returns (TribesTableData memory _table) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     (bytes memory _staticData, EncodedLengths _encodedLengths, bytes memory _dynamicData) = StoreCore.getRecord(
       _tableId,
@@ -720,21 +720,21 @@ library CorporationsTable {
    * @notice Set the full data using individual values.
    */
   function set(
-    uint256 corpId,
-    uint256 CEO,
+    uint256 tribeId,
+    uint256 warlord,
     bytes8 ticker,
     uint256 claimedAt,
     string memory name,
     string memory homepage,
     string memory description
   ) internal {
-    bytes memory _staticData = encodeStatic(CEO, ticker, claimedAt);
+    bytes memory _staticData = encodeStatic(warlord, ticker, claimedAt);
 
     EncodedLengths _encodedLengths = encodeLengths(name, homepage, description);
     bytes memory _dynamicData = encodeDynamic(name, homepage, description);
 
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData);
   }
@@ -743,21 +743,21 @@ library CorporationsTable {
    * @notice Set the full data using individual values.
    */
   function _set(
-    uint256 corpId,
-    uint256 CEO,
+    uint256 tribeId,
+    uint256 warlord,
     bytes8 ticker,
     uint256 claimedAt,
     string memory name,
     string memory homepage,
     string memory description
   ) internal {
-    bytes memory _staticData = encodeStatic(CEO, ticker, claimedAt);
+    bytes memory _staticData = encodeStatic(warlord, ticker, claimedAt);
 
     EncodedLengths _encodedLengths = encodeLengths(name, homepage, description);
     bytes memory _dynamicData = encodeDynamic(name, homepage, description);
 
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData, _fieldLayout);
   }
@@ -765,14 +765,14 @@ library CorporationsTable {
   /**
    * @notice Set the full data using the data struct.
    */
-  function set(uint256 corpId, CorporationsTableData memory _table) internal {
-    bytes memory _staticData = encodeStatic(_table.CEO, _table.ticker, _table.claimedAt);
+  function set(uint256 tribeId, TribesTableData memory _table) internal {
+    bytes memory _staticData = encodeStatic(_table.warlord, _table.ticker, _table.claimedAt);
 
     EncodedLengths _encodedLengths = encodeLengths(_table.name, _table.homepage, _table.description);
     bytes memory _dynamicData = encodeDynamic(_table.name, _table.homepage, _table.description);
 
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData);
   }
@@ -780,14 +780,14 @@ library CorporationsTable {
   /**
    * @notice Set the full data using the data struct.
    */
-  function _set(uint256 corpId, CorporationsTableData memory _table) internal {
-    bytes memory _staticData = encodeStatic(_table.CEO, _table.ticker, _table.claimedAt);
+  function _set(uint256 tribeId, TribesTableData memory _table) internal {
+    bytes memory _staticData = encodeStatic(_table.warlord, _table.ticker, _table.claimedAt);
 
     EncodedLengths _encodedLengths = encodeLengths(_table.name, _table.homepage, _table.description);
     bytes memory _dynamicData = encodeDynamic(_table.name, _table.homepage, _table.description);
 
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData, _fieldLayout);
   }
@@ -795,8 +795,8 @@ library CorporationsTable {
   /**
    * @notice Decode the tightly packed blob of static data using this table's field layout.
    */
-  function decodeStatic(bytes memory _blob) internal pure returns (uint256 CEO, bytes8 ticker, uint256 claimedAt) {
-    CEO = (uint256(Bytes.getBytes32(_blob, 0)));
+  function decodeStatic(bytes memory _blob) internal pure returns (uint256 warlord, bytes8 ticker, uint256 claimedAt) {
+    warlord = (uint256(Bytes.getBytes32(_blob, 0)));
 
     ticker = (Bytes.getBytes8(_blob, 32));
 
@@ -840,8 +840,8 @@ library CorporationsTable {
     bytes memory _staticData,
     EncodedLengths _encodedLengths,
     bytes memory _dynamicData
-  ) internal pure returns (CorporationsTableData memory _table) {
-    (_table.CEO, _table.ticker, _table.claimedAt) = decodeStatic(_staticData);
+  ) internal pure returns (TribesTableData memory _table) {
+    (_table.warlord, _table.ticker, _table.claimedAt) = decodeStatic(_staticData);
 
     (_table.name, _table.homepage, _table.description) = decodeDynamic(_encodedLengths, _dynamicData);
   }
@@ -849,9 +849,9 @@ library CorporationsTable {
   /**
    * @notice Delete all data for given keys.
    */
-  function deleteRecord(uint256 corpId) internal {
+  function deleteRecord(uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreSwitch.deleteRecord(_tableId, _keyTuple);
   }
@@ -859,9 +859,9 @@ library CorporationsTable {
   /**
    * @notice Delete all data for given keys.
    */
-  function _deleteRecord(uint256 corpId) internal {
+  function _deleteRecord(uint256 tribeId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     StoreCore.deleteRecord(_tableId, _keyTuple, _fieldLayout);
   }
@@ -870,8 +870,8 @@ library CorporationsTable {
    * @notice Tightly pack static (fixed length) data using this table's schema.
    * @return The static data, encoded into a sequence of bytes.
    */
-  function encodeStatic(uint256 CEO, bytes8 ticker, uint256 claimedAt) internal pure returns (bytes memory) {
-    return abi.encodePacked(CEO, ticker, claimedAt);
+  function encodeStatic(uint256 warlord, bytes8 ticker, uint256 claimedAt) internal pure returns (bytes memory) {
+    return abi.encodePacked(warlord, ticker, claimedAt);
   }
 
   /**
@@ -908,14 +908,14 @@ library CorporationsTable {
    * @return The dynamic (variable length) data, encoded into a sequence of bytes.
    */
   function encode(
-    uint256 CEO,
+    uint256 warlord,
     bytes8 ticker,
     uint256 claimedAt,
     string memory name,
     string memory homepage,
     string memory description
   ) internal pure returns (bytes memory, EncodedLengths, bytes memory) {
-    bytes memory _staticData = encodeStatic(CEO, ticker, claimedAt);
+    bytes memory _staticData = encodeStatic(warlord, ticker, claimedAt);
 
     EncodedLengths _encodedLengths = encodeLengths(name, homepage, description);
     bytes memory _dynamicData = encodeDynamic(name, homepage, description);
@@ -926,9 +926,9 @@ library CorporationsTable {
   /**
    * @notice Encode keys as a bytes32 array using this table's field layout.
    */
-  function encodeKeyTuple(uint256 corpId) internal pure returns (bytes32[] memory) {
+  function encodeKeyTuple(uint256 tribeId) internal pure returns (bytes32[] memory) {
     bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = bytes32(uint256(corpId));
+    _keyTuple[0] = bytes32(uint256(tribeId));
 
     return _keyTuple;
   }
