@@ -3,15 +3,14 @@ pragma solidity >=0.8.24;
 
 import { System } from "@latticexyz/world/src/System.sol";
 
-import { CharactersTable } from "@eveworld/world/src/codegen/tables/CharactersTable.sol";
-import { CharactersByAddressTable } from "@eveworld/world/src/codegen/tables/CharactersByAddressTable.sol";
+import { Characters, CharactersByAccount } from "@eveworld/world-v2/src/namespaces/evefrontier/codegen/index.sol";
 import { CorporationsTable, CorporationsTableData } from "../codegen/tables/CorporationsTable.sol";
 import { CorporationsTickers } from "../codegen/tables/CorporationsTickers.sol";
 import { CorporationsSystemErrors } from "./CorporationsSystemErrors.sol";
 
 contract CorporationsSystem is System {
   modifier onlyCEO(uint256 corpId) {
-    uint256 callerId = CharactersByAddressTable.getCharacterId(_msgSender());
+    uint256 callerId = CharactersByAccount.getSmartObjectId(_msgSender());
     uint256 ceoId = CorporationsTable.getCEO(corpId);
     if (callerId != ceoId) {
       revert CorporationsSystemErrors.CorporationsSystem_Unauthorized(corpId, callerId);
@@ -20,10 +19,10 @@ contract CorporationsSystem is System {
   }
 
   function claim(uint256 corpId, bytes8 ticker, string calldata name) public {
-    uint256 characterId = CharactersByAddressTable.getCharacterId(_msgSender());
+    uint256 characterId = CharactersByAccount.getSmartObjectId(_msgSender());
 
     // Check if the character is member of the corp
-    if (CharactersTable.getCorpId(characterId) != corpId) {
+    if (Characters.getTribeId(characterId) != corpId) {
       revert CorporationsSystemErrors.CorporationsSystem_NotMemberOfCorp(corpId, characterId);
     }
 
@@ -47,7 +46,7 @@ contract CorporationsSystem is System {
 
   function transfer(uint256 corpId, uint256 toCeoId) public onlyCEO(corpId) {
     // Check if the new CEO is member of the corp
-    if (CharactersTable.getCorpId(toCeoId) != corpId) {
+    if (Characters.getTribeId(toCeoId) != corpId) {
       revert CorporationsSystemErrors.CorporationsSystem_NotMemberOfCorp(corpId, toCeoId);
     }
 
@@ -69,7 +68,7 @@ contract CorporationsSystem is System {
     }
 
     // Corp claimed, but the CEO is not member of the corp anymore
-    if (CharactersTable.getCorpId(ceoId) != corpId) {
+    if (Characters.getTribeId(ceoId) != corpId) {
       return false;
     }
 
