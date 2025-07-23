@@ -3,16 +3,15 @@ pragma solidity >=0.8.24;
 
 import { System } from "@latticexyz/world/src/System.sol";
 
-import { DeployableTokenTable } from "@eveworld/world/src/codegen/tables/DeployableTokenTable.sol";
-import { IERC721 } from "@eveworld/world/src/modules/eve-erc721-puppet/IERC721.sol";
+import { OwnershipByObject } from "@eveworld/world-v2/src/namespaces/evefrontier/codegen/tables/OwnershipByObject.sol";
 import { Gates } from "../codegen/tables/Gates.sol";
 import { GatesCharacterExceptions } from "../codegen/tables/GatesCharacterExceptions.sol";
 import { GatesCorpExceptions } from "../codegen/tables/GatesCorpExceptions.sol";
 import { GateConfigErrors } from "./GateConfigErrors.sol";
 
 contract GateConfigSystem is System {
-  function _getOwner(uint256 gateId) internal returns (address owner) {
-    owner = IERC721(DeployableTokenTable.getErc721Address()).ownerOf(gateId);
+  function _getOwner(uint256 gateId) internal view returns (address owner) {
+    owner = OwnershipByObject.get(gateId);
   }
 
   modifier onlyOwner(uint256 gateId) {
