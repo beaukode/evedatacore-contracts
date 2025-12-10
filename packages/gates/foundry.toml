@@ -31,7 +31,7 @@ eth_rpc_url = "http://127.0.0.1:8545"
 
 [profile.testnet]
 # Public Testnet
-eth_rpc_url = "https://rpc.pyropechain.com"
+eth_rpc_url = "https://sepolia.optimism.io"
 
 [profile.redstone]
 # Public Mainnet
