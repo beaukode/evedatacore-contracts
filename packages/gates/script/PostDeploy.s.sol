@@ -2,9 +2,7 @@
 pragma solidity >=0.8.24;
 
 import { Script } from "forge-std/Script.sol";
-import { console } from "forge-std/console.sol";
 import { StoreSwitch } from "@latticexyz/store/src/StoreSwitch.sol";
-import { IWorld } from "../src/codegen/world/IWorld.sol";
 import { GatesDapp } from "../src/codegen/index.sol";
 
 contract PostDeploy is Script {
