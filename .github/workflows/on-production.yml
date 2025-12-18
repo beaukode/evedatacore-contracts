@@ -31,6 +31,7 @@ jobs:
         env:
           PRIVATE_KEY: ${{ secrets.GATES_PRIVATE_KEY }}
           GATES_NAMESPACE: ${{ vars.GATES_NAMESPACE }}
+          GATES_DAPP_URL: ${{ vars.GATES_DAPP_URL }}
         run: |
           cd packages/gates
           rm -Rf test
