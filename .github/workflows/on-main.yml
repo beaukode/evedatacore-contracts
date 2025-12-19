@@ -27,15 +27,6 @@ jobs:
           node-version: 20.x
       - name: "Install dependencies"
         run: "npm ci"
-      - name: "Deploy tribes"
-        env:
-          PRIVATE_KEY: ${{ secrets.TRIBES_PRIVATE_KEY }}
-          TRIBES_NAMESPACE: ${{ vars.TRIBES_NAMESPACE }}
-        run: |
-          cd packages/tribes
-          rm -Rf test
-          npm run deploy:testnet
-          npm run verify:testnet
       - name: "Deploy gates"
         env:
           PRIVATE_KEY: ${{ secrets.GATES_PRIVATE_KEY }}
