@@ -2,7 +2,6 @@
 pragma solidity >=0.8.24;
 
 import "forge-std/Test.sol";
-import "forge-std/console.sol";
 import { MudTest } from "@latticexyz/world/test/MudTest.t.sol";
 import { ResourceId } from "@latticexyz/world/src/WorldResourceId.sol";
 import { WorldResourceIdInstance } from "@latticexyz/world/src/WorldResourceId.sol";
@@ -26,9 +25,7 @@ import {
   Tenant,
   CharactersByAccount,
   Characters,
-  EntityRecordMetadata,
   LocationData,
-  Inventory,
   InventoryItem,
   EphemeralInvItem
 } from "@eveworld/world-v2/src/namespaces/evefrontier/codegen/index.sol";
@@ -60,7 +57,6 @@ contract SSUTest is MudTest {
   address private player1;
   address private player2;
   address private player3;
-  address private player4;
   uint256 private smartObjectId;
   uint256 private smartObjectId2; // Second SSU without access set
   uint256 private nonSingletonObjectId;
@@ -97,7 +93,6 @@ contract SSUTest is MudTest {
     characters["player1"] = _calculateObjectId(smartCharacterTypeId, 71, true);
     characters["player2"] = _calculateObjectId(smartCharacterTypeId, 72, true);
     characters["player3"] = _calculateObjectId(smartCharacterTypeId, 73, true);
-    characters["player4"] = _calculateObjectId(smartCharacterTypeId, 74, true);
 
     if (CharactersByAccount.get(admin) == 0) {
       smartCharacterSystem.createCharacter(
