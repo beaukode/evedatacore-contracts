@@ -37,7 +37,7 @@ jobs:
           rm -Rf test
           npm run deploy:testnet
           npm run verify:testnet
-      - name: "Deploy gates"
+      - name: "Deploy ssu"
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           SSU_NAMESPACE: ${{ vars.SSU_NAMESPACE }}          
