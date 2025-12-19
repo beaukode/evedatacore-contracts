@@ -14,7 +14,7 @@ services:
       retries: 5
       start_period: 20s
   # deployer:
-  #   image: ghcr.io/projectawakening/world-chain-deployer-image:0.1.11
+  #   image: ghcr.io/projectawakening/world-chain-deployer-image:0.1.17
   #   platform: linux/amd64
   #   depends_on:
   #     foundry:
@@ -39,7 +39,7 @@ services:
   #     FUEL_TYPE_ID: "78437,78515,78516,84868,88319,88335"
   #     FUEL_EFFICIENCY: "90,80,40,40,15,10"
   #     FUEL_VOLUME: "28,28,28,28,28,28"
-  #     WORLD_VERSION: "0.1.11"
+  #     WORLD_VERSION: "0.1.17"
   #   tty: true
   postgres:
     image: postgres
@@ -57,7 +57,7 @@ services:
 
   indexer:
     image: node:20-alpine
-    entrypoint: npx -y -p @latticexyz/store-indexer postgres-decoded-indexer
+    entrypoint: npx -y -p @latticexyz/store-indexer@2.2.21 postgres-decoded-indexer
     environment:
       DATABASE_URL: "postgres://postgres:AidaVa7vaeNg0Hae@postgres:5432/postgres"
       RPC_WS_URL: "ws://foundry:8545"

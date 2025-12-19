@@ -27,6 +27,7 @@
     "solhint-plugin-mud": "2.2.9"
   },
   "workspaces": [
-    "packages/gates"
+    "packages/gates",
+    "packages/ssu"
   ]
 }
