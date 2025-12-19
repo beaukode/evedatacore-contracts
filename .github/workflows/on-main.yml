@@ -29,7 +29,7 @@ jobs:
         run: "npm ci"
       - name: "Deploy gates"
         env:
-          PRIVATE_KEY: ${{ secrets.GATES_PRIVATE_KEY }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           GATES_NAMESPACE: ${{ vars.GATES_NAMESPACE }}
           GATES_DAPP_URL: ${{ vars.GATES_DAPP_URL }}
         run: |
