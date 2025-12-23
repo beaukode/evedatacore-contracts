@@ -5,6 +5,7 @@
   "main": "index.js",
   "devDependencies": {},
   "scripts": {
+    "prebuild": "node scripts/generate-constants.js",
     "build": "mud build",
     "clean": "forge clean && rimraf src/codegen",
     "dev:contracts": "dotenv -e ../../.env  -c anvil -- sh -c 'mud dev-contracts --rpc $RPC_URL --worldAddress ${WORLD_ADDRESS}'",
