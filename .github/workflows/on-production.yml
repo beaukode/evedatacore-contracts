@@ -29,11 +29,20 @@ jobs:
         run: "npm ci"
       - name: "Deploy gates"
         env:
-          PRIVATE_KEY: ${{ secrets.GATES_PRIVATE_KEY }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           GATES_NAMESPACE: ${{ vars.GATES_NAMESPACE }}
           GATES_DAPP_URL: ${{ vars.GATES_DAPP_URL }}
         run: |
           cd packages/gates
+          rm -Rf test
+          npm run deploy:testnet
+          npm run verify:testnet
+      - name: "Deploy ssu"
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          SSU_NAMESPACE: ${{ vars.SSU_NAMESPACE }}
+        run: |
+          cd packages/ssu
           rm -Rf test
           npm run deploy:testnet
           npm run verify:testnet
