@@ -15,8 +15,15 @@ import {
 import { HasRole, Role } from "@eveworld/smart-object-framework-v2/src/namespaces/evefrontier/codegen/index.sol";
 
 import { SSUSystemErrors } from "./SSUSystemErrors.sol";
+import { SSU_SYSTEM_NAMESPACE } from "./constants.sol";
 
 contract SSUSystem is System {
+  bytes16 private immutable namespace;
+
+  constructor() {
+    namespace = SSU_SYSTEM_NAMESPACE;
+  }
+
   function _getOwner(uint256 ssuId) internal view returns (address owner) {
     owner = OwnershipByObject.get(ssuId);
   }
